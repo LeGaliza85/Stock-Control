@@ -7,7 +7,6 @@ one:
   precio_venta: 9.99
   estado: 1
   anio_aprox: 1
-  uso: MyString
   categoria: muebles
   user: one
 
@@ -18,6 +17,5 @@ two:
   precio_venta: 9.99
   estado: 1
   anio_aprox: 1
-  uso: MyString
   categoria: muebles
   user: two

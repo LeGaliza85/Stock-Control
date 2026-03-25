@@ -8,7 +8,7 @@ class Producto < ApplicationRecord
     bueno: 1,
     aceptable: 2,
     desgastado: 3,
-    reparacion: 4
+    para_restaurar: 4
   }
 
   validates :nombre, :descripcion, :precio_compra, :precio_venta,

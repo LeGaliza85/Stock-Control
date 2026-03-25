@@ -35,7 +35,7 @@
           "bueno" => "bg-[#E4ECF4] text-[#3D5470]",
           "aceptable" => "bg-[#F5ECD7] text-[#8B6914]",
           "desgastado" => "bg-[#F4E4DC] text-[#8B4F3A]",
-          "reparacion" => "bg-[#F4DCDC] text-[#7F3333]"
+          "restauracion" => "bg-[#F4DCDC] text-[#7F3333]"
         }
       %>
       <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium <%= badge_colors[@producto.estado] %>">
@@ -82,12 +82,6 @@
         <div>
           <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Año aproximado</span>
           <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.anio_aprox %></p>
-        </div>
-      <% end %>
-      <% if @producto.uso.present? %>
-        <div>
-          <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Uso</span>
-          <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.uso %></p>
         </div>
       <% end %>
       <div>

@@ -122,7 +122,7 @@ textarea::placeholder {
 .badge-bueno       { background: #E4ECF4; color: #3D5470; }
 .badge-aceptable   { background: #F5ECD7; color: #8B6914; }
 .badge-desgastado  { background: #F4E4DC; color: #8B4F3A; }
-.badge-reparacion  { background: #F4DCDC; color: #7F3333; }
+.badge-restauracion  { background: #F4DCDC; color: #7F3333; }
 
 [class*="badge-"] {
   font-size: 0.75rem;

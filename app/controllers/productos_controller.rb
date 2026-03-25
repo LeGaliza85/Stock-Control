@@ -55,7 +55,7 @@ class ProductosController < ApplicationController
   end
 
   def producto_params
-    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :anio_aprox, :uso, :categoria_id, fotos: [] ])
+    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :anio_aprox, :categoria_id, fotos: [] ])
   end
 
   def current_user
