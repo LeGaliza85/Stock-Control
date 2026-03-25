@@ -11,19 +11,23 @@ class CreateProductosFts < ActiveRecord::Migration[8.1]
 
       CREATE TRIGGER productos_ai AFTER INSERT ON productos BEGIN
         INSERT INTO productos_fts(rowid, nombre, descripcion, categoria)
-        VALUES (new.id, new.nombre, new.descripcion, new.categoria);
+        VALUES (new.id, new.nombre, new.descripcion,
+          (SELECT nombre FROM categorias WHERE id = new.categoria_id));
       END;
 
       CREATE TRIGGER productos_ad AFTER DELETE ON productos BEGIN
         INSERT INTO productos_fts(productos_fts, rowid, nombre, descripcion, categoria)
-        VALUES ('delete', old.id, old.nombre, old.descripcion, old.categoria);
+        VALUES ('delete', old.id, old.nombre, old.descripcion,
+          (SELECT nombre FROM categorias WHERE id = old.categoria_id));
       END;
 
       CREATE TRIGGER productos_au AFTER UPDATE ON productos BEGIN
         INSERT INTO productos_fts(productos_fts, rowid, nombre, descripcion, categoria)
-        VALUES ('delete', old.id, old.nombre, old.descripcion, old.categoria);
+        VALUES ('delete', old.id, old.nombre, old.descripcion,
+          (SELECT nombre FROM categorias WHERE id = old.categoria_id));
         INSERT INTO productos_fts(rowid, nombre, descripcion, categoria)
-        VALUES (new.id, new.nombre, new.descripcion, new.categoria);
+        VALUES (new.id, new.nombre, new.descripcion,
+          (SELECT nombre FROM categorias WHERE id = new.categoria_id));
       END;
     SQL
   end

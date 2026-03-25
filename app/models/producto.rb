@@ -19,11 +19,11 @@ class Producto < ApplicationRecord
     return all if termino.blank?
     sanitized = termino.gsub(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/, "").strip
     return all if sanitized.blank?
-    quoted = sanitized.split.map { |t| "\"#{t}\"*" }.join(" ")
-    stmt = connection.raw_connection.prepare("SELECT rowid FROM productos_fts WHERE productos_fts MATCH ?")
-    ids = stmt.execute(quoted).map { |row| row["rowid"] }
-    stmt.close
-    ids.any? ? where(id: ids) : none
+    pattern = "%#{sanitized}%"
+    left_joins(:categoria).where(
+      "productos.nombre LIKE :p OR productos.descripcion LIKE :p OR categorias.nombre LIKE :p",
+      p: pattern
+    )
   }
 
   scope :por_categoria, ->(cat) { where(categoria_id: cat) if cat.present? }
