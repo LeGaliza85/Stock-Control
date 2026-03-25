@@ -5,7 +5,6 @@ export default class extends Controller {
 
   preview(event) {
     const container = this.previewTarget
-    container.innerHTML = ""
 
     const files = event.target.files
     if (!files.length) return
@@ -17,7 +16,7 @@ export default class extends Controller {
       reader.onload = (e) => {
         const img = document.createElement("img")
         img.src = e.target.result
-        img.className = "w-20 h-20 object-cover rounded-md"
+        img.className = "w-16 h-16 object-cover rounded-lg border-2 border-[#B8860B]"
         container.appendChild(img)
       }
       reader.readAsDataURL(file)

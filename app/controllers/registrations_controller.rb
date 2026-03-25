@@ -1,6 +1,7 @@
 class RegistrationsController < ApplicationController
   allow_unauthenticated_access
-  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_registration_path, alert: "Try again later." }
+  skip_before_action :verify_authenticity_token, only: :create
+  rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_registration_path, alert: "Intenta de nuevo más tarde." }
 
   def new
     @user = User.new
@@ -11,7 +12,7 @@ class RegistrationsController < ApplicationController
 
     if @user.save
       start_new_session_for @user
-      redirect_to root_path, notice: "Welcome! Your account has been created."
+      redirect_to root_path, notice: "¡Bienvenido! Tu cuenta ha sido creada."
     else
       render :new, status: :unprocessable_entity
     end

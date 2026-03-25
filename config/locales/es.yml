@@ -1,0 +1,34 @@
+es:
+  activerecord:
+    models:
+      producto: Producto
+      categoria: Categoría
+      user: Usuario
+    attributes:
+      producto:
+        nombre: Nombre
+        descripcion: Descripción
+        precio_compra: Precio de compra
+        precio_venta: Precio de venta
+        estado: Estado
+        categoria: Categoría
+        categoria_id: Categoría
+        fotos: Fotos
+      categoria:
+        nombre: Nombre
+      user:
+        nombre: Nombre
+        email_address: Correo electrónico
+        password: Contraseña
+        password_confirmation: Confirmar contraseña
+  helpers:
+    submit:
+      create: Crear %{model}
+      update: Guardar %{model}
+      submit: Guardar %{model}
+  errors:
+    messages:
+      blank: no puede estar en blanco
+      invalid: no es válido
+      taken: ya está en uso
+      confirmation: no coincide

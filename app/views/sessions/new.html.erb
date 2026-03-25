@@ -21,7 +21,12 @@
 
       <div>
         <%= form.label :password, "Contrasena", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
-        <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Tu contrasena", maxlength: 72 %>
+        <div class="relative">
+          <input type="password" name="password" id="pass" required autocomplete="current-password" placeholder="Tu contrasena" maxlength="72" class="w-full rounded-lg border border-gray-300 pr-10 px-3 py-2" style="padding-right:2.5rem">
+          <button type="button" id="passBtn" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;color:#9C8B7A">
+            <svg id="passEye" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
       </div>
 
       <div>

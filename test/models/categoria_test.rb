@@ -4,19 +4,19 @@ class CategoriaTest < ActiveSupport::TestCase
   test "requires nombre" do
     categoria = Categoria.new
     assert_not categoria.valid?
-    assert_includes categoria.errors[:nombre], "can't be blank"
+    assert_includes categoria.errors[:nombre], "no puede estar en blanco"
   end
 
   test "enforces uniqueness of nombre" do
     categoria = Categoria.new(nombre: categorias(:muebles).nombre)
     assert_not categoria.valid?
-    assert_includes categoria.errors[:nombre], "has already been taken"
+    assert_includes categoria.errors[:nombre], "ya está en uso"
   end
 
   test "enforces case-insensitive uniqueness" do
     categoria = Categoria.new(nombre: "muebles")
     assert_not categoria.valid?
-    assert_includes categoria.errors[:nombre], "has already been taken"
+    assert_includes categoria.errors[:nombre], "ya está en uso"
   end
 
   test "restricts deletion when has productos" do

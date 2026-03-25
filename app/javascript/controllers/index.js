@@ -4,6 +4,9 @@
 
 import { application } from "./application"
 
+import CameraController from "./camera_controller"
+application.register("camera", CameraController)
+
 import HelloController from "./hello_controller"
 application.register("hello", HelloController)
 
@@ -12,3 +15,6 @@ application.register("photo-preview", PhotoPreviewController)
 
 import SearchController from "./search_controller"
 application.register("search", SearchController)
+
+import TogglePasswordController from "./toggle_password_controller"
+application.register("toggle-password", TogglePasswordController)
