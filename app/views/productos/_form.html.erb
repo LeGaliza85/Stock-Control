@@ -59,69 +59,62 @@
           ¿No encuentras la categoría? <%= link_to "Crear nueva", new_categoria_path, class: "text-[#B8860B] hover:text-[#9A7209] underline" %>
         </p>
       </div>
+      <div>
+        <%= f.label :etiqueta, "Etiqueta", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+        <%= f.select :etiqueta, Producto.etiquetas.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar etiqueta" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+      </div>
     </div>
   </div>
 
   <div class="border-t border-[#E8E0D4] my-6"></div>
 
   <!-- Fotografías -->
-  <div class="mb-8" data-controller="photo-preview camera">
+  <div class="mb-8" data-controller="photo-preview">
     <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Fotografías</h2>
 
     <div class="flex flex-wrap gap-3 mb-3">
-      <button type="button" data-action="camera#open"
-        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200"
-        style="background-color: var(--accent);"
-        onmouseover="this.style.backgroundColor='#9A7209'" onmouseout="this.style.backgroundColor='#B8860B'">
+      <label class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;" onmouseover="this.style.backgroundColor='#9A7209'" onmouseout="this.style.backgroundColor='#B8860B'">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
         Tomar foto
-      </button>
+        <%= f.file_field :fotos, multiple: true, accept: "image/*", id: "cameraInput", class: "hidden", data: { action: "change->photo-preview#preview" }, html: { capture: "environment" } %>
+      </label>
 
       <label class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border border-[#E8E0D4] text-[#6B5744] hover:bg-[#F5ECD7]">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
         Subir desde galería
-        <%= f.file_field :fotos, multiple: true, accept: "image/*", id: "fotosInput", class: "hidden" %>
+        <%= f.file_field :fotos, multiple: true, accept: "image/*", id: "fotosInput", class: "hidden", data: { action: "change->photo-preview#preview" } %>
       </label>
     </div>
 
-    <div data-photo-preview-target="preview" data-camera-target="preview" class="mt-3 flex flex-wrap gap-3 min-h-[20px]"></div>
+    <div data-photo-preview-target="preview" class="mt-3 flex flex-wrap gap-3 min-h-[20px]"></div>
     <p data-photo-preview-target="counter" class="hidden mt-2 text-xs font-medium text-[#B8860B]"></p>
 
     <% if @producto.fotos.attached? %>
       <div class="mt-3">
-        <p class="text-xs font-medium text-[#6B5744] mb-2">Fotos actuales (<%= @producto.fotos.count %>):</p>
+        <p class="text-xs font-medium text-[#6B5744] mb-2">Fotos actuales (<%= @producto.fotos.count %>) - Marca las que quieras eliminar:</p>
         <div class="flex flex-wrap gap-2">
-          <% @producto.fotos.each do |foto| %>
-            <%= image_tag foto.variant(resize_to_limit: [100, 100]), class: "rounded-lg border border-[#E8E0D4]" %>
+          <% @producto.fotos.each_with_index do |foto, index| %>
+            <div class="relative foto-item" data-foto-id="<%= foto.id %>">
+              <%= check_box_tag "producto[fotos_a_eliminar][]", foto.id, false,
+                  id: "foto_delete_#{index}",
+                  class: "absolute top-1 left-1 w-4 h-4 accent-[#A63D2F] cursor-pointer z-10 foto-checkbox" %>
+              <%= label_tag "foto_delete_#{index}", class: "block cursor-pointer" do %>
+                <%= image_tag foto.variant(resize_to_limit: [100, 100]),
+                    class: "rounded-lg border-2 border-[#E8E0D4] hover:border-[#A63D2F] transition-all foto-preview" %>
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded-lg bg-[#A63D2F]/30">
+                  <span class="text-white text-xs font-bold bg-[#A63D2F] px-2 py-1 rounded">X</span>
+                </div>
+              <% end %>
+            </div>
           <% end %>
         </div>
       </div>
     <% end %>
-
-    <!-- Modal cámara -->
-    <div data-camera-target="modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center" style="background: rgba(28, 18, 16, 0.9);">
-      <div class="relative w-full max-w-lg mx-4">
-        <video data-camera-target="video" autoplay playsinline class="w-full rounded-xl shadow-2xl"></video>
-        <canvas data-camera-target="canvas" class="hidden"></canvas>
-        <div class="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-6">
-          <button type="button" data-action="camera#capture"
-            class="w-16 h-16 rounded-full border-4 border-white shadow-lg cursor-pointer transition-transform hover:scale-110"
-            style="background-color: var(--accent);">
-          </button>
-          <button type="button" data-action="camera#close"
-            class="w-10 h-10 rounded-full bg-white/20 backdrop-blur text-white flex items-center justify-center cursor-pointer hover:bg-white/30 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div>

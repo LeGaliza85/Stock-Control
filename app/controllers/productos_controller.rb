@@ -36,7 +36,18 @@ class ProductosController < ApplicationController
   end
 
   def update
+    fotos_a_eliminar = params[:producto]&.delete(:fotos_a_eliminar) || []
+    fotos_nuevas = params[:producto]&.delete(:fotos)
+
     if @producto.update(producto_params)
+      fotos_a_eliminar.each do |foto_id|
+        @producto.fotos.find(foto_id.to_i)&.purge_later
+      end
+
+      if fotos_nuevas.present?
+        fotos_nuevas.each { |foto| @producto.fotos.attach(foto) }
+      end
+
       redirect_to @producto, notice: "Producto actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
@@ -74,7 +85,7 @@ class ProductosController < ApplicationController
   end
 
   def producto_params
-    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, fotos: [] ])
+    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, :etiqueta ])
   end
 
   def current_user
