@@ -5,6 +5,12 @@ export default class extends Controller {
 
   open() {
     this.photos = this.photos || []
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this._openNativeCamera()
+      return
+    }
+
     this.modalTarget.classList.remove("hidden")
 
     navigator.mediaDevices
@@ -16,7 +22,7 @@ export default class extends Controller {
       })
       .catch(() => {
         this.close()
-        this.fileInputTarget.click()
+        this._openNativeCamera()
       })
   }
 
@@ -55,5 +61,21 @@ export default class extends Controller {
     img.src = URL.createObjectURL(blob)
     img.className = "w-16 h-16 object-cover rounded-lg border-2 border-[#B8860B]"
     this.previewTarget.appendChild(img)
+  }
+
+  _openNativeCamera() {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = "image/*"
+    input.setAttribute("capture", "environment")
+    input.multiple = true
+    input.addEventListener("change", (e) => {
+      Array.from(e.target.files).forEach((file) => {
+        this.photos.push(file)
+        this._addThumbnail(file)
+      })
+      this._updateFileInput()
+    })
+    input.click()
   }
 }

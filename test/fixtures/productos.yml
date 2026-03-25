@@ -6,7 +6,6 @@ one:
   precio_compra: 9.99
   precio_venta: 9.99
   estado: 1
-  anio_aprox: 1
   categoria: muebles
   user: one
 
@@ -16,6 +15,5 @@ two:
   precio_compra: 9.99
   precio_venta: 9.99
   estado: 1
-  anio_aprox: 1
   categoria: muebles
   user: two
