@@ -18,3 +18,6 @@ application.register("search", SearchController)
 
 import TogglePasswordController from "./toggle_password_controller"
 application.register("toggle-password", TogglePasswordController)
+
+import AccentCorrectorController from "./accent_corrector_controller"
+application.register("accent-corrector", AccentCorrectorController)

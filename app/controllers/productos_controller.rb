@@ -48,6 +48,19 @@ class ProductosController < ApplicationController
     redirect_to productos_path, notice: "Producto eliminado exitosamente."
   end
 
+  def suggestions
+    q = params[:q].to_s.strip
+    if q.length < 2
+      render json: []
+      return
+    end
+
+    pattern = "%#{q}%"
+    nombres = Producto.where("nombre LIKE ?", pattern).limit(5).pluck(:nombre)
+    categorias = Categoria.where("nombre LIKE ?", pattern).limit(3).pluck(:nombre)
+    render json: (nombres + categorias).uniq.first(8)
+  end
+
   private
 
   def set_producto
