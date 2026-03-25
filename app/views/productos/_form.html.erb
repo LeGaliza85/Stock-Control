@@ -20,7 +20,7 @@
       </div>
       <div>
         <%= f.label :descripcion, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.text_area :descripcion, rows: 4, data: { controller: "accent-corrector", action: "blur->accent-corrector#correct" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.text_area :descripcion, rows: 4, id: "descripcionField", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
       </div>
     </div>
   </div>
