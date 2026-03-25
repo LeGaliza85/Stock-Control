@@ -7,6 +7,12 @@ class ProductosController < ApplicationController
     @productos = @productos.buscar(params[:q]) if params[:q].present?
     @productos = @productos.por_categoria(params[:categoria]) if params[:categoria].present?
     @productos = @productos.por_estado(params[:estado]) if params[:estado].present?
+
+    @per_page = (params[:per_page] || 12).to_i
+    @per_page = 12 unless [ 12, 24, 48 ].include?(@per_page)
+    @page = [ params[:page].to_i, 1 ].max
+    @total = @productos.count
+    @productos = @productos.offset((@page - 1) * @per_page).limit(@per_page)
   end
 
   def show
