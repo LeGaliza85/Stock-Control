@@ -1,0 +1,152 @@
+/*
+ * StockControl — "Vintage Catalog" Design System
+ */
+
+:root {
+  --bg-cream: #FAF7F2;
+  --bg-card: #FFFFFF;
+  --accent: #B8860B;
+  --accent-hover: #9A7209;
+  --accent-light: #F5ECD7;
+  --text-primary: #2C1810;
+  --text-secondary: #6B5744;
+  --text-muted: #9C8B7A;
+  --navbar-bg: #1C1210;
+  --danger: #A63D2F;
+  --success: #5B7F5E;
+  --border: #E8E0D4;
+}
+
+body {
+  background-color: var(--bg-cream);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  position: relative;
+}
+
+/* Subtle grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image:
+    repeating-conic-gradient(var(--text-primary) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', serif;
+  color: var(--text-primary);
+}
+
+/* Global smooth transitions */
+*, *::before, *::after {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Form inputs — warm styling */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+textarea,
+select {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background-color: var(--bg-card);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Card hover accent border */
+.card-hover {
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  border-bottom-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(44, 24, 16, 0.08);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Estado badges */
+.badge-nuevo       { background: #E8F0E8; color: #3D5E3D; }
+.badge-bueno       { background: #E4ECF4; color: #3D5470; }
+.badge-aceptable   { background: #F5ECD7; color: #8B6914; }
+.badge-desgastado  { background: #F4E4DC; color: #8B4F3A; }
+.badge-reparacion  { background: #F4DCDC; color: #7F3333; }
+
+[class*="badge-"] {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-block;
+}
+
+/* Decorative separator */
+.separator-diamond {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--border);
+}
+.separator-diamond::before,
+.separator-diamond::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.separator-diamond span {
+  font-size: 0.5rem;
+  color: var(--accent);
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "StockControl" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="StockControl">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="min-h-screen" style="background-color: var(--bg-cream); color: var(--text-primary); font-family: 'DM Sans', sans-serif;">
+    <%# Navbar %>
+    <nav class="sticky top-0 z-50 shadow-lg" style="background-color: var(--navbar-bg);">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <%= link_to root_path, class: "hover:opacity-80 transition-opacity" do %>
+          <span style="font-family: 'Playfair Display', serif; color: var(--accent);" class="text-xl font-bold tracking-tight">StockControl</span>
+        <% end %>
+
+        <%# Desktop menu %>
+        <div class="hidden md:flex items-center gap-5">
+          <% if authenticated? %>
+            <span class="text-sm" style="color: var(--text-muted);"><%= Current.session.user.nombre %></span>
+            <%= link_to "Productos", productos_path, class: "text-sm font-medium transition-colors", style: "color: #E8E0D4;", onmouseover: "this.style.color='#B8860B'", onmouseout: "this.style.color='#E8E0D4'" rescue nil %>
+            <%= link_to "Categorías", categorias_path, class: "text-sm font-medium transition-colors", style: "color: #E8E0D4;", onmouseover: "this.style.color='#B8860B'", onmouseout: "this.style.color='#E8E0D4'" rescue nil %>
+            <%= button_to "Cerrar sesion", session_path, method: :delete, class: "text-sm px-3 py-1.5 rounded cursor-pointer font-medium transition-colors", style: "color: var(--text-muted); border: 1px solid #3D2E28;", onmouseover: "this.style.borderColor='#6B5744'; this.style.color='#E8E0D4'", onmouseout: "this.style.borderColor='#3D2E28'; this.style.color='var(--text-muted)'" %>
+          <% else %>
+            <%= link_to "Iniciar sesion", new_session_path, class: "text-sm font-medium transition-colors", style: "color: #E8E0D4;", onmouseover: "this.style.color='#B8860B'", onmouseout: "this.style.color='#E8E0D4'" %>
+            <%= link_to "Registro", new_registration_path, class: "text-sm px-4 py-1.5 rounded font-medium transition-colors", style: "background-color: var(--accent); color: #FAF7F2;", onmouseover: "this.style.backgroundColor='#9A7209'", onmouseout: "this.style.backgroundColor='#B8860B'" %>
+          <% end %>
+        </div>
+
+        <%# Mobile menu %>
+        <details class="md:hidden relative">
+          <summary class="list-none cursor-pointer p-2" style="color: var(--accent);">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </summary>
+          <div class="absolute right-0 mt-2 w-52 rounded-lg shadow-xl py-2 z-50" style="background-color: #2A1E1A; border: 1px solid #3D2E28;">
+            <% if authenticated? %>
+              <span class="block px-4 py-2 text-sm" style="color: var(--text-muted);"><%= Current.session.user.nombre %></span>
+              <div style="border-top: 1px solid #3D2E28; margin: 0.25rem 1rem;"></div>
+              <%= link_to "Productos", productos_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #E8E0D4;" rescue nil %>
+              <%= link_to "Categorías", categorias_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #E8E0D4;" rescue nil %>
+              <%= button_to "Cerrar sesion", session_path, method: :delete, class: "w-full text-left px-4 py-2 text-sm cursor-pointer transition-colors", style: "color: var(--text-muted);" %>
+            <% else %>
+              <%= link_to "Iniciar sesion", new_session_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #E8E0D4;" %>
+              <%= link_to "Registro", new_registration_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: var(--accent);" %>
+            <% end %>
+          </div>
+        </details>
+      </div>
+      <%# Decorative amber line below navbar %>
+      <div style="height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent);"></div>
+    </nav>
+
+    <%# Flash messages %>
+    <% if notice %>
+      <div class="container mx-auto px-4 mt-4">
+        <div class="px-4 py-3 rounded-lg text-sm flex items-center justify-between" style="background-color: #E8F0E8; border: 1px solid #C4D9C4; color: #3D5E3D;">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span><%= notice %></span>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="ml-4 font-bold cursor-pointer opacity-60 hover:opacity-100">&times;</button>
+        </div>
+      </div>
+    <% end %>
+    <% if alert %>
+      <div class="container mx-auto px-4 mt-4">
+        <div class="px-4 py-3 rounded-lg text-sm flex items-center justify-between" style="background-color: #F4DCDC; border: 1px solid #E0B8B8; color: #7F3333;">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <span><%= alert %></span>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="ml-4 font-bold cursor-pointer opacity-60 hover:opacity-100">&times;</button>
+        </div>
+      </div>
+    <% end %>
+
+    <%# Main content %>
+    <main class="container mx-auto px-4 py-8">
+      <%= yield %>
+    </main>
+
+    <%# Footer %>
+    <footer class="mt-auto py-6 text-center text-xs" style="color: var(--text-muted); border-top: 1px solid var(--border);">
+      <div class="container mx-auto px-4">
+        <span style="font-family: 'Playfair Display', serif; color: var(--accent);">StockControl</span>
+        <span class="mx-2">&middot;</span>
+        &copy; <%= Date.current.year %>
+      </div>
+    </footer>
+  </body>
+</html>

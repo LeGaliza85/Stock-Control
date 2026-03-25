@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  nombre: MyString
+  descripcion: MyText
+  precio_compra: 9.99
+  precio_venta: 9.99
+  estado: 1
+  anio_aprox: 1
+  uso: MyString
+  categoria: muebles
+  user: one
+
+two:
+  nombre: MyString2
+  descripcion: MyText
+  precio_compra: 9.99
+  precio_venta: 9.99
+  estado: 1
+  anio_aprox: 1
+  uso: MyString
+  categoria: muebles
+  user: two

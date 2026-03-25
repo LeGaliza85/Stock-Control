@@ -1,0 +1,8 @@
+muebles:
+  nombre: Muebles
+
+decoracion:
+  nombre: Decoración
+
+arte:
+  nombre: Arte

@@ -1,0 +1,55 @@
+<div class="flex min-h-[60vh] items-center justify-center">
+  <div class="w-full max-w-md p-8 rounded-xl card-hover" style="background-color: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 24px rgba(44, 24, 16, 0.06);">
+    <h1 class="text-2xl font-bold text-center mb-1" style="font-family: 'Playfair Display', serif; color: var(--text-primary);">Crear cuenta</h1>
+    <p class="text-center text-sm mb-6" style="color: var(--text-muted);">Registrate en StockControl</p>
+
+    <div class="separator-diamond mb-6"><span>&#9670;</span></div>
+
+    <% if alert = flash[:alert] %>
+      <div class="px-4 py-3 rounded-lg text-sm mb-4" style="background-color: #F4DCDC; border: 1px solid #E0B8B8; color: #7F3333;"><%= alert %></div>
+    <% end %>
+
+    <%= form_with model: @user, url: registration_path, class: "space-y-5" do |form| %>
+      <% if @user.errors.any? %>
+        <div class="px-4 py-3 rounded-lg text-sm" style="background-color: #F4DCDC; border: 1px solid #E0B8B8; color: #7F3333;">
+          <h3 class="font-semibold mb-1">Se encontraron <%= pluralize(@user.errors.count, "error") %>:</h3>
+          <ul class="list-disc list-inside text-sm">
+            <% @user.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :nombre, "Nombre", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
+        <%= form.text_field :nombre, required: true, autofocus: true, placeholder: "Tu nombre" %>
+      </div>
+
+      <div>
+        <%= form.label :email_address, "Correo electronico", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
+        <%= form.email_field :email_address, required: true, autocomplete: "username", placeholder: "tu@correo.com" %>
+      </div>
+
+      <div>
+        <%= form.label :password, "Contrasena", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
+        <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Minimo 6 caracteres", maxlength: 72 %>
+      </div>
+
+      <div>
+        <%= form.label :password_confirmation, "Confirmar contrasena", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
+        <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repite tu contrasena", maxlength: 72 %>
+      </div>
+
+      <div>
+        <%= form.submit "Crear cuenta", class: "w-full rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors", style: "background-color: var(--accent); color: #FAF7F2;", onmouseover: "this.style.backgroundColor='#9A7209'", onmouseout: "this.style.backgroundColor='#B8860B'" %>
+      </div>
+
+      <div class="separator-diamond mt-6 mb-2"><span>&#9670;</span></div>
+
+      <div class="text-center text-sm" style="color: var(--text-muted);">
+        Ya tienes cuenta? <%= link_to "Iniciar sesion", new_session_path, class: "font-medium transition-colors", style: "color: var(--accent);", onmouseover: "this.style.color='#9A7209'", onmouseout: "this.style.color='#B8860B'" %>
+      </div>
+    <% end %>
+  </div>
+</div>

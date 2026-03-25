@@ -1,0 +1,21 @@
+services:
+  app:
+    image: stock_control-app
+    tty: true
+    stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/rails
+      - bundle_data:/usr/local/bundle
+      - data:/data
+      - bash_history:/root
+    ports:
+      - "3000:3000"
+    command: bash -c "rm -f tmp/pids/server.pid && bin/dev"
+
+volumes:
+  bundle_data:
+  data:
+  bash_history:
