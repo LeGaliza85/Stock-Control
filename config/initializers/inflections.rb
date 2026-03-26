@@ -18,4 +18,5 @@
 # Spanish inflection rules
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "categoria", "categorias"
+  inflect.irregular "etiqueta", "etiquetas"
 end

@@ -1,10 +1,20 @@
 <div class="w-full">
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <h1 class="text-3xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Inventario</h1>
-    <%= link_to new_producto_path, class: "inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-      Nuevo Producto
-    <% end %>
+    <div class="flex gap-3">
+      <button type="button" id="btnAnalizarIAIndex"
+        class="inline-flex items-center gap-2 rounded-lg border-2 border-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+        </svg>
+        Analizar con IA
+      </button>
+      <input type="file" id="iaCameraInputIndex" accept="image/*" capture="environment" class="hidden">
+      <%= link_to new_producto_path, class: "inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        Nuevo Producto
+      <% end %>
+    </div>
   </div>
 
   <%# Barra de búsqueda %>
@@ -12,6 +22,7 @@
     <%= form_with url: productos_path, method: :get, data: { controller: "search", turbo_frame: "productos" }, class: "flex gap-2", autocomplete: "off" do |f| %>
       <%= f.hidden_field :categoria, value: params[:categoria] %>
       <%= f.hidden_field :estado, value: params[:estado] %>
+      <%= f.hidden_field :etiqueta, value: params[:etiqueta] %>
       <%= f.hidden_field :per_page, value: @per_page %>
       <div class="relative flex-1">
         <%= f.text_field :q, value: params[:q], placeholder: "Buscar en el inventario...", data: { action: "input->search#search" }, id: "searchInput", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] placeholder-[#9C8B7A] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
@@ -24,11 +35,11 @@
   <%# Panel de filtros %>
   <div class="mb-6">
     <div class="flex items-center gap-3">
-      <details class="group flex-1" <%= "open" if params[:categoria].present? || params[:estado].present? %>>
+      <details class="group flex-1" <%= "open" if params[:categoria].present? || params[:estado].present? || params[:etiqueta].present? %>>
         <summary class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-[#6B5744] hover:text-[#2C1810] transition-colors select-none">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/></svg>
           Filtros
-          <% active_filters = [params[:categoria].present?, params[:estado].present?].count(true) %>
+          <% active_filters = [params[:categoria].present?, params[:estado].present?, params[:etiqueta].present?].count(true) %>
           <% if active_filters > 0 %>
             <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#B8860B] text-white text-xs font-bold"><%= active_filters %></span>
           <% end %>
@@ -40,11 +51,15 @@
         <%= f.hidden_field :per_page, value: @per_page %>
         <div class="flex-1">
           <%= f.label :categoria, "Categoría", class: "block text-xs font-medium text-[#6B5744] mb-1" %>
-          <%= f.select :categoria, options_for_select(Categoria.order(:nombre).pluck(:nombre, :id), params[:categoria]), { include_blank: "Todas" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
+          <%= f.select :categoria, options_for_select(@categorias_para_filtro, params[:categoria]), { include_blank: "Todas" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
         </div>
         <div class="flex-1">
           <%= f.label :estado, "Estado", class: "block text-xs font-medium text-[#6B5744] mb-1" %>
           <%= f.select :estado, options_for_select(Producto.estados.keys.map { |e| [e.humanize, e] }, params[:estado]), { include_blank: "Todos" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
+        </div>
+        <div class="flex-1">
+          <%= f.label :etiqueta, "Etiqueta", class: "block text-xs font-medium text-[#6B5744] mb-1" %>
+          <%= f.select :etiqueta, options_for_select(Producto.etiquetas.keys.map { |e| [e.humanize, e] }, params[:etiqueta]), { include_blank: "Todas" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
         </div>
         <div class="flex gap-2">
           <%= f.submit "Aplicar", class: "rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all" %>
@@ -52,7 +67,7 @@
         </div>
       <% end %>
       </details>
-      <% if params[:categoria].present? || params[:estado].present? || params[:q].present? %>
+      <% if params[:categoria].present? || params[:estado].present? || params[:etiqueta].present? || params[:q].present? %>
         <%= link_to productos_path(per_page: @per_page), class: "inline-flex items-center gap-1 rounded-lg border border-[#E8E0D4] px-3 py-1.5 text-xs font-medium text-[#A63D2F] hover:bg-[#F4DCDC] transition-colors" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
           Limpiar filtros
@@ -74,6 +89,7 @@
       <%= f.hidden_field :q, value: params[:q] %>
       <%= f.hidden_field :categoria, value: params[:categoria] %>
       <%= f.hidden_field :estado, value: params[:estado] %>
+      <%= f.hidden_field :etiqueta, value: params[:etiqueta] %>
       <span>Por página:</span>
       <%= f.select :per_page, options_for_select([12, 24, 48], @per_page), {}, class: "rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] text-sm px-2 py-1", onchange: "this.form.requestSubmit()" %>
     <% end %>
@@ -121,8 +137,8 @@
       <% total_pages = (@total.to_f / @per_page).ceil %>
       <% if total_pages > 1 %>
         <div class="flex items-center justify-center gap-2 mt-8">
-          <% if @page > 1 %>
-            <%= link_to productos_path(q: params[:q], categoria: params[:categoria], estado: params[:estado], per_page: @per_page, page: @page - 1), class: "inline-flex items-center gap-1 rounded-lg border border-[#E8E0D4] px-3 py-2 text-sm text-[#6B5744] hover:bg-[#F5ECD7] transition-all" do %>
+            <% if @page > 1 %>
+            <%= link_to productos_path(q: params[:q], categoria: params[:categoria], estado: params[:estado], etiqueta: params[:etiqueta], per_page: @per_page, page: @page - 1), class: "inline-flex items-center gap-1 rounded-lg border border-[#E8E0D4] px-3 py-2 text-sm text-[#6B5744] hover:bg-[#F5ECD7] transition-all" do %>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
               Anterior
             <% end %>
@@ -132,14 +148,14 @@
             <% if p == @page %>
               <span class="inline-flex items-center rounded-lg bg-[#B8860B] px-3.5 py-2 text-sm font-semibold text-white"><%= p %></span>
             <% elsif p == 1 || p == total_pages || (p - @page).abs <= 1 %>
-              <%= link_to p, productos_path(q: params[:q], categoria: params[:categoria], estado: params[:estado], per_page: @per_page, page: p), class: "inline-flex items-center rounded-lg border border-[#E8E0D4] px-3.5 py-2 text-sm text-[#6B5744] hover:bg-[#F5ECD7] transition-all" %>
+              <%= link_to p, productos_path(q: params[:q], categoria: params[:categoria], estado: params[:estado], etiqueta: params[:etiqueta], per_page: @per_page, page: p), class: "inline-flex items-center rounded-lg border border-[#E8E0D4] px-3.5 py-2 text-sm text-[#6B5744] hover:bg-[#F5ECD7] transition-all" %>
             <% elsif (p - @page).abs == 2 %>
               <span class="px-1 text-[#9C8B7A]">…</span>
             <% end %>
           <% end %>
 
           <% if @page < total_pages %>
-            <%= link_to productos_path(q: params[:q], categoria: params[:categoria], estado: params[:estado], per_page: @per_page, page: @page + 1), class: "inline-flex items-center gap-1 rounded-lg border border-[#E8E0D4] px-3 py-2 text-sm text-[#6B5744] hover:bg-[#F5ECD7] transition-all" do %>
+            <%= link_to productos_path(q: params[:q], categoria: params[:categoria], estado: params[:estado], etiqueta: params[:etiqueta], per_page: @per_page, page: @page + 1), class: "inline-flex items-center gap-1 rounded-lg border border-[#E8E0D4] px-3 py-2 text-sm text-[#6B5744] hover:bg-[#F5ECD7] transition-all" do %>
               Siguiente
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
             <% end %>
@@ -155,3 +171,346 @@
     <% end %>
   <% end %>
 </div>
+
+<!-- Modal de Análisis IA para Index -->
+<div id="iaModalIndex" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
+  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Análisis de Imagen</h3>
+        <button type="button" id="closeIaModalIndex" class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
+          <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Preview de imagen -->
+      <div id="iaImagePreviewIndex" class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center" style="min-height: 150px;">
+        <p class="text-[#9C8B7A] text-sm">Cargando imagen...</p>
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="iaLoadingIndex" class="hidden text-center py-8">
+        <div class="relative inline-block w-16 h-16 mb-4">
+          <div class="absolute inset-0 rounded-full border-4 border-[#7C3AED]/20"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-[#7C3AED] animate-spin"></div>
+          <div class="absolute inset-3 flex items-center justify-center">
+            <svg class="w-6 h-6 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-lg font-semibold text-[#2C1810] mb-2">Analizando imagen...</p>
+        <p class="text-sm text-[#6B5744]" id="iaServiceNameIndex">Usando Google Gemini</p>
+        <p class="text-xs text-[#9C8B7A] mt-2">Esto puede tardar unos segundos</p>
+      </div>
+
+      <!-- Resultados -->
+      <div id="iaResultsIndex" class="hidden">
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-sm font-medium text-[#6B5744]">Confianza del análisis</span>
+            <span id="iaConfianzaIndex" class="text-sm font-bold text-[#2C1810]">0%</span>
+          </div>
+          <div class="w-full bg-[#E8E0D4] rounded-full h-2">
+            <div id="iaConfianzaBarIndex" class="bg-[#B8860B] h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Descripción detectada</label>
+          <textarea id="iaDescripcionIndex" rows="4" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Tipo de producto</label>
+            <input type="text" id="iaTipoProductoIndex" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Categoría sugerida</label>
+            <input type="text" id="iaCategoriaSugeridaIndex" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Marca/Modelo</label>
+            <input type="text" id="iaMarcaModeloIndex" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Estado aparente</label>
+            <select id="iaEstadoIndex" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+              <option value="">Seleccionar estado</option>
+              <option value="nuevo">Nuevo</option>
+              <option value="bueno">Bueno</option>
+              <option value="aceptable">Aceptable</option>
+              <option value="desgastado">Desgastado</option>
+              <option value="para_restaurar">Para restaurar</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="iaErroresIndex" class="hidden mb-4 p-3 bg-[#F4DCDC] rounded-lg text-sm text-[#A63D2F]">
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <button type="button" id="btnCrearProductoIAIndex" class="w-full rounded-lg bg-[#7C3AED] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#6D28D9] cursor-pointer transition-all duration-200 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Crear nuevo producto con estos datos
+          </button>
+          <button type="button" id="btnCancelarIAIndex" class="w-full rounded-lg border border-[#E8E0D4] px-6 py-2.5 text-sm font-medium text-[#6B5744] hover:bg-[#F5ECD7] cursor-pointer transition-all duration-200">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="iaErrorIndex" class="hidden text-center py-8">
+        <div class="w-12 h-12 rounded-full bg-[#F4DCDC] flex items-center justify-center mx-auto mb-4">
+          <svg class="w-6 h-6 text-[#A63D2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <p id="iaErrorMsgIndex" class="text-[#A63D2F] mb-4">Error al analizar la imagen</p>
+        <button type="button" id="btnRetryIAIndex" class="rounded-lg border border-[#A63D2F] px-6 py-2.5 text-sm font-medium text-[#A63D2F] hover:bg-[#F4DCDC] cursor-pointer transition-all duration-200">
+          Reintentar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var modal = document.getElementById('iaModalIndex');
+  var btnAnalizarIndex = document.getElementById('btnAnalizarIAIndex');
+  var btnCloseIndex = document.getElementById('closeIaModalIndex');
+  var btnCancelIndex = document.getElementById('btnCancelarIAIndex');
+  var btnCrearProductoIndex = document.getElementById('btnCrearProductoIAIndex');
+  var btnRetryIndex = document.getElementById('btnRetryIAIndex');
+  var iaCameraInputIndex = document.getElementById('iaCameraInputIndex');
+  var loadingIndex = document.getElementById('iaLoadingIndex');
+  var resultsIndex = document.getElementById('iaResultsIndex');
+  var errorDivIndex = document.getElementById('iaErrorIndex');
+  var imagePreviewIndex = document.getElementById('iaImagePreviewIndex');
+  var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  
+  var currentImageDataIndex = null;
+  var currentAnalysisIndex = null;
+
+  if (btnAnalizarIndex && iaCameraInputIndex) {
+    btnAnalizarIndex.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Botón IA clickeado, abriendo cámara...');
+      iaCameraInputIndex.click();
+    });
+  }
+
+  if (iaCameraInputIndex) {
+    iaCameraInputIndex.addEventListener('change', function(e) {
+      console.log('Archivo seleccionado:', e.target.files ? e.target.files.length : 0);
+      if (e.target.files && e.target.files[0]) {
+        var file = e.target.files[0];
+        console.log('Archivo:', file.name, file.type);
+        openModalWithImageIndex(file);
+      } else {
+        console.log('No hay archivo seleccionado');
+      }
+    });
+    
+    // Para móviles: asegurar que el input se resetee después de cada uso
+    iaCameraInputIndex.addEventListener('click', function(e) {
+      console.log('Input clickeado');
+    });
+  }
+
+  function fileToBase64Index(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function() { resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function openModalWithImageIndex(imageData) {
+    if (!modal) return;
+    
+    currentImageDataIndex = imageData;
+    resetModalIndex();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    if (typeof imageData === 'object' && imageData.type) {
+      fileToBase64Index(imageData).then(function(base64) {
+        currentImageDataIndex = base64;
+        showImagePreviewIndex(base64);
+        analyzeImageIndex();
+      });
+    } else {
+      showImagePreviewIndex(imageData);
+      analyzeImageIndex();
+    }
+  }
+
+  function showImagePreviewIndex(src) {
+    if (imagePreviewIndex) {
+      imagePreviewIndex.innerHTML = '<img src="' + src + '" class="max-h-48 mx-auto rounded-lg">';
+    }
+  }
+
+  function resetModalIndex() {
+    if (loadingIndex) loadingIndex.classList.add('hidden');
+    if (resultsIndex) resultsIndex.classList.add('hidden');
+    if (errorDivIndex) errorDivIndex.classList.add('hidden');
+    var errorMsg = document.getElementById('iaErrorMsgIndex');
+    if (errorMsg) errorMsg.textContent = 'Error al analizar la imagen';
+  }
+
+  function analyzeImageIndex() {
+    if (!loadingIndex) return;
+    
+    loadingIndex.classList.remove('hidden');
+    if (resultsIndex) resultsIndex.classList.add('hidden');
+    if (errorDivIndex) errorDivIndex.classList.add('hidden');
+    
+    var formData = new FormData();
+    formData.append('image_data', currentImageDataIndex);
+    
+    fetch('/ia/analyze', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': csrfToken || ''
+      },
+      body: formData
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      loadingIndex.classList.add('hidden');
+      
+      if (data.error) {
+        showErrorIndex(data.error, data.necesita_config === true);
+      } else {
+        showResultsIndex(data);
+      }
+    })
+    .catch(function(error) {
+      loadingIndex.classList.add('hidden');
+      showErrorIndex('Error de conexión: ' + error.message, false);
+    });
+  }
+
+  function showErrorIndex(message, necesitaConfig) {
+    if (!errorDivIndex) return;
+    
+    errorDivIndex.classList.remove('hidden');
+    var errorMsg = document.getElementById('iaErrorMsgIndex');
+    if (errorMsg) {
+      if (necesitaConfig) {
+        errorMsg.innerHTML = message + '<br><br><a href="/config_ia" class="inline-block mt-2 text-[#B8860B] hover:underline font-medium">Ir a configurar API Key →</a>';
+      } else {
+        errorMsg.textContent = message;
+      }
+    }
+  }
+
+  function showResultsIndex(data) {
+    if (!resultsIndex) return;
+    
+    resultsIndex.classList.remove('hidden');
+    currentAnalysisIndex = data;
+    
+    var confianza = data.confianza || 0;
+    document.getElementById('iaConfianzaIndex').textContent = confianza + '%';
+    document.getElementById('iaConfianzaBarIndex').style.width = confianza + '%';
+    
+    var confianzaBar = document.getElementById('iaConfianzaBarIndex');
+    if (confianza >= 80) {
+      confianzaBar.className = 'bg-[#3D5E3D] h-2 rounded-full transition-all duration-500';
+    } else if (confianza >= 50) {
+      confianzaBar.className = 'bg-[#B8860B] h-2 rounded-full transition-all duration-500';
+    } else {
+      confianzaBar.className = 'bg-[#A63D2F] h-2 rounded-full transition-all duration-500';
+    }
+    
+    document.getElementById('iaDescripcionIndex').value = data.descripcion || '';
+    document.getElementById('iaTipoProductoIndex').value = data.tipo_producto || '';
+    document.getElementById('iaCategoriaSugeridaIndex').value = data.categoria_sugerida || '';
+    document.getElementById('iaMarcaModeloIndex').value = data.marca_modelo || '';
+    
+    var estadoSelect = document.getElementById('iaEstadoIndex');
+    if (data.estado) {
+      for (var i = 0; i < estadoSelect.options.length; i++) {
+        if (estadoSelect.options[i].value === data.estado) {
+          estadoSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    
+    var erroresDiv = document.getElementById('iaErroresIndex');
+    if (data.errores && data.errores.length > 0) {
+      erroresDiv.classList.remove('hidden');
+      erroresDiv.innerHTML = '<strong>Notas:</strong> ' + data.errores.join(', ');
+    } else {
+      erroresDiv.classList.add('hidden');
+    }
+  }
+
+  function createNewProductIndex() {
+    if (!currentAnalysisIndex) return;
+    
+    var descripcion = document.getElementById('iaDescripcionIndex').value;
+    var nombre = document.getElementById('iaMarcaModeloIndex').value || document.getElementById('iaTipoProductoIndex').value;
+    var estado = document.getElementById('iaEstadoIndex').value;
+    
+    var params = new URLSearchParams();
+    if (nombre) params.set('nombre', nombre);
+    if (descripcion) params.set('descripcion', descripcion);
+    if (estado) params.set('estado', estado);
+    params.set('from_ia', '1');
+    
+    if (currentImageDataIndex) {
+      if (currentImageDataIndex.length > 50000) {
+        var imageKey = 'ia_image_' + Date.now();
+        sessionStorage.setItem(imageKey, currentImageDataIndex);
+        params.set('ia_image_key', imageKey);
+      } else {
+        params.set('ia_image_data', currentImageDataIndex);
+      }
+    }
+    
+    window.location.href = '/productos/new?' + params.toString();
+  }
+
+  function closeModalIndex() {
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    if (iaCameraInputIndex) iaCameraInputIndex.value = '';
+  }
+
+  if (btnCloseIndex) btnCloseIndex.addEventListener('click', closeModalIndex);
+  if (btnCancelIndex) btnCancelIndex.addEventListener('click', closeModalIndex);
+  if (btnCrearProductoIndex) btnCrearProductoIndex.addEventListener('click', createNewProductIndex);
+  if (btnRetryIndex) btnRetryIndex.addEventListener('click', analyzeImageIndex);
+  
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closeModalIndex();
+    });
+    
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeModalIndex();
+      }
+    });
+  }
+})();
+</script>

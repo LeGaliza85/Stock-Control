@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_25_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_27_000005) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -46,18 +46,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_140000) do
     t.index ["nombre"], name: "index_categorias_on_nombre", unique: true
   end
 
+  create_table "ia_usages", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "ia_service", null: false
+    t.date "last_reset_date", default: -> { "CURRENT_DATE" }
+    t.integer "last_reset_month", default: 1
+    t.integer "requests_this_month", default: 0
+    t.integer "requests_today", default: 0
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "ia_service"], name: "index_ia_usages_on_user_id_and_ia_service", unique: true
+  end
+
   create_table "productos", force: :cascade do |t|
     t.integer "categoria_id", null: false
     t.datetime "created_at", null: false
     t.text "descripcion", null: false
     t.integer "estado", null: false
+    t.integer "etiqueta", default: 0
     t.string "nombre", null: false
     t.decimal "precio_compra", precision: 10, scale: 2, null: false
     t.decimal "precio_venta", precision: 10, scale: 2, null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["categoria_id", "created_at"], name: "index_productos_on_categoria_id_and_created_at"
     t.index ["categoria_id"], name: "index_productos_on_categoria_id"
+    t.index ["estado", "created_at"], name: "index_productos_on_estado_and_created_at"
     t.index ["estado"], name: "index_productos_on_estado"
+    t.index ["etiqueta"], name: "index_productos_on_etiqueta"
+    t.index ["user_id", "created_at"], name: "index_productos_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_productos_on_user_id"
   end
 
@@ -76,8 +93,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_140000) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.text "api_key"
     t.datetime "created_at", null: false
     t.string "email_address", null: false
+    t.string "ia_service", default: "gemini"
+    t.string "moondream_mode", default: "cloud"
     t.string "nombre", null: false
     t.string "password_digest", null: false
     t.integer "rol", default: 0, null: false
@@ -87,6 +107,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_25_140000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ia_usages", "users"
   add_foreign_key "productos", "users"
   add_foreign_key "sessions", "users"
 end

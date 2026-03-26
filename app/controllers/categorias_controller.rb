@@ -2,7 +2,10 @@ class CategoriasController < ApplicationController
   before_action :set_categoria, only: [ :edit, :update, :destroy ]
 
   def index
-    @categorias = Categoria.order(:nombre)
+    @categorias = Categoria.left_joins(:productos)
+                           .select("categorias.*, COUNT(productos.id) as productos_count")
+                           .group("categorias.id")
+                           .order(:nombre)
   end
 
   def new

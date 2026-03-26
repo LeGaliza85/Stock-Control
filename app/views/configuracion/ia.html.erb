@@ -1,0 +1,115 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-8">
+    <%= link_to productos_path, class: "inline-flex items-center gap-1 text-[#B8860B] hover:text-[#9A7209] text-sm font-medium transition-all duration-200" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      Volver al inventario
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8">
+    <h1 class="text-2xl font-bold text-[#2C1810] mb-6" style="font-family: 'Playfair Display', serif;">Configuración de IA</h1>
+
+    <% if flash[:notice] %>
+      <div class="mb-4 p-3 rounded-lg text-sm bg-[#E8F0E8] text-[#3D5E3D] border border-[#C4D9C4]">
+        <%= flash[:notice] %>
+      </div>
+    <% end %>
+    <% if flash[:alert] %>
+      <div class="mb-4 p-3 rounded-lg text-sm bg-[#F4DCDC] text-[#A63D2F] border border-[#E0B8B8]">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+
+    <%= form_with url: ia_config_path, method: :patch, local: true, id: "iaConfigForm" do |f| %>
+      <div class="space-y-6">
+        <div>
+          <label class="block text-sm font-medium text-[#6B5744] mb-3">Servicio de IA para análisis de imágenes</label>
+          <div class="space-y-3">
+            <!-- Google Gemini -->
+            <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= current_user.ia_service == 'gemini' ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4] hover:border-[#B8860B]/50' %>" data-service="gemini">
+              <%= f.radio_button :ia_service, "gemini", class: "mt-1 accent-[#B8860B]", checked: current_user.ia_service == "gemini" %>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-[#2C1810]">Google Gemini</span>
+                </div>
+                <div class="mt-2 flex flex-col gap-1">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-[#6B5744]">Hoy:</span>
+                    <span class="font-medium text-[#2C1810]"><%= @gemini_used_today %> / <%= number_with_delimiter(@gemini_limit) %> <%= @gemini_label %></span>
+                  </div>
+                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
+                    <div class="bg-[#B8860B] h-1.5 rounded-full" style="width: <%= @gemini_limit > 0 ? (@gemini_used_today.to_f / @gemini_limit * 100).round : 0 %>%"></div>
+                  </div>
+                  <div class="flex items-center justify-between text-xs mt-1">
+                    <span class="text-[#6B5744]">Este mes:</span>
+                    <span class="font-medium text-[#2C1810]"><%= @gemini_used_month %> / <%= number_with_delimiter(@gemini_monthly_limit) %> <%= @gemini_label %></span>
+                  </div>
+                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
+                    <div class="bg-[#9A7209] h-1.5 rounded-full" style="width: <%= @gemini_monthly_limit > 0 ? (@gemini_used_month.to_f / @gemini_monthly_limit * 100).round : 0 %>%"></div>
+                  </div>
+                </div>
+                <p class="text-sm text-[#6B5744] mt-2">
+                  Altamente preciso. Identifica marcas, modelos y estado del producto.
+                </p>
+              </div>
+            </label>
+
+            <!-- Moondream -->
+            <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= current_user.ia_service == 'moondream' ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4] hover:border-[#B8860B]/50' %>" data-service="moondream">
+              <%= f.radio_button :ia_service, "moondream", class: "mt-1 accent-[#B8860B]", checked: current_user.ia_service == "moondream" %>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-[#2C1810]">Moondream</span>
+                </div>
+                <div class="mt-2 flex flex-col gap-1">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-[#6B5744]">Hoy:</span>
+                    <span class="font-medium text-[#2C1810]"><%= @moondream_used_today %> / <%= number_with_delimiter(@moondream_limit) %> <%= @moondream_label %></span>
+                  </div>
+                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
+                    <div class="bg-[#7C3AED] h-1.5 rounded-full" style="width: <%= @moondream_limit > 0 ? (@moondream_used_today.to_f / @moondream_limit * 100).round : 0 %>%"></div>
+                  </div>
+                  <div class="flex items-center justify-between text-xs mt-1">
+                    <span class="text-[#6B5744]">Este mes:</span>
+                    <span class="font-medium text-[#2C1810]"><%= @moondream_used_month %> / <%= number_with_delimiter(@moondream_monthly_limit) %> <%= @moondream_label %></span>
+                  </div>
+                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
+                    <div class="bg-[#5B21B6] h-1.5 rounded-full" style="width: <%= @moondream_monthly_limit > 0 ? (@moondream_used_month.to_f / @moondream_monthly_limit * 100).round : 0 %>%"></div>
+                  </div>
+                </div>
+                <p class="text-sm text-[#6B5744] mt-2">
+                  IA ligera y rápida. Funciona en móvil y PC.
+                </p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <%= f.submit "Guardar configuración", class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8860B] cursor-pointer transition-all duration-200" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var options = document.querySelectorAll('.ia-service-option');
+  var radios = document.querySelectorAll('input[name="ia_service"]');
+
+  radios.forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      options.forEach(function(opt) {
+        if (opt.dataset.service === radio.value) {
+          opt.classList.add('border-[#B8860B]', 'bg-[#F5ECD7]/30');
+          opt.classList.remove('border-[#E8E0D4]');
+        } else {
+          opt.classList.remove('border-[#B8860B]', 'bg-[#F5ECD7]/30');
+          opt.classList.add('border-[#E8E0D4]');
+        }
+      });
+    });
+  });
+});
+</script>
+</div>

@@ -11,8 +11,15 @@ class Producto < ApplicationRecord
     para_restaurar: 4
   }
 
+  enum :etiqueta, {
+    en_venta: 0,
+    reservado: 1,
+    vendido: 2,
+    en_restauracion: 3
+  }, default: :en_venta
+
   validates :nombre, :descripcion, :precio_compra, :precio_venta,
-            :estado, :categoria_id, presence: true
+            :estado, :categoria_id, :etiqueta, presence: true
   validates :precio_compra, :precio_venta, numericality: { greater_than_or_equal_to: 0 }
 
   scope :buscar, ->(termino) {
@@ -28,4 +35,5 @@ class Producto < ApplicationRecord
 
   scope :por_categoria, ->(cat) { where(categoria_id: cat) if cat.present? }
   scope :por_estado, ->(est) { where(estado: est) if est.present? }
+  scope :por_etiqueta, ->(etiq) { where(etiqueta: etiq) if etiq.present? }
 end

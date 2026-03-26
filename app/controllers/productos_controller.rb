@@ -13,6 +13,7 @@ class ProductosController < ApplicationController
     @page = [ params[:page].to_i, 1 ].max
     @total = @productos.count
     @productos = @productos.offset((@page - 1) * @per_page).limit(@per_page)
+    @categorias_para_filtro = Categoria.order(:nombre).pluck(:nombre, :id)
   end
 
   def show
@@ -20,12 +21,40 @@ class ProductosController < ApplicationController
 
   def new
     @producto = current_user.productos.build
+    @quick_analyze = params[:quick_analyze] == "1"
+
+    if params[:from_ia] == "1"
+      @producto.nombre = params[:nombre] if params[:nombre].present?
+      @producto.descripcion = params[:descripcion] if params[:descripcion].present?
+      @producto.estado = params[:estado] if params[:estado].present?
+    end
   end
 
   def create
+    fotos_nuevas = params[:producto]&.delete(:fotos)
+    ia_image_data = params[:producto]&.delete(:ia_image_data)
+
     @producto = current_user.productos.build(producto_params)
 
+    if ia_image_data.present? && ia_image_data.start_with?("data:image")
+      begin
+        image_data = ia_image_data.sub(/^data:image\/\w+;base64,/, "")
+        image_binary = Base64.decode64(image_data)
+        filename = "ia_analisis_#{Time.now.to_i}.jpg"
+        @producto.fotos.attach(
+          io: StringIO.new(image_binary),
+          filename: filename,
+          content_type: "image/jpeg"
+        )
+      rescue => e
+        Rails.logger.error "Error al procesar imagen IA: #{e.message}"
+      end
+    end
+
     if @producto.save
+      if fotos_nuevas.present?
+        fotos_nuevas.each { |foto| @producto.fotos.attach(foto) }
+      end
       redirect_to @producto, notice: "Producto creado exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -85,11 +114,6 @@ class ProductosController < ApplicationController
   end
 
   def producto_params
-    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, :etiqueta ])
+    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, :etiqueta, :ia_image_data ])
   end
-
-  def current_user
-    Current.user
-  end
-  helper_method :current_user
 end

@@ -1,4 +1,6 @@
 <%= form_with model: @producto, class: "bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8" do |f| %>
+  <% edit_mode = local_assigns[:edit_mode] || false %>
+  <input type="hidden" id="formEditMode" value="<%= edit_mode %>">
   <% if @producto.errors.any? %>
     <div class="bg-[#F4DCDC] border border-[#A63D2F]/30 rounded-lg p-4 mb-8">
       <h3 class="text-[#A63D2F] font-semibold mb-2">Se encontraron <%= pluralize(@producto.errors.count, "error") %>:</h3>
@@ -73,22 +75,33 @@
     <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Fotografías</h2>
 
     <div class="flex flex-wrap gap-3 mb-3">
-      <label class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;" onmouseover="this.style.backgroundColor='#9A7209'" onmouseout="this.style.backgroundColor='#B8860B'">
+      <button type="button" id="btnTomarFoto" onclick="document.getElementById('cameraInput').click()"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;" onmouseover="this.style.backgroundColor='#9A7209'" onmouseout="this.style.backgroundColor='#B8860B'">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
         Tomar foto
-        <%= f.file_field :fotos, multiple: true, accept: "image/*", id: "cameraInput", class: "hidden", data: { action: "change->photo-preview#preview" }, html: { capture: "environment" } %>
-      </label>
+      </button>
+      <input type="file" id="cameraInput" name="producto[fotos][]" accept="image/*" capture="environment" multiple class="hidden" data-action="change->photo-preview#preview">
 
-      <label class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border border-[#E8E0D4] text-[#6B5744] hover:bg-[#F5ECD7]">
+      <button type="button" onclick="document.getElementById('fotosInput').click()"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border border-[#E8E0D4] text-[#6B5744] hover:bg-[#F5ECD7]">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
-        Subir desde galería
-        <%= f.file_field :fotos, multiple: true, accept: "image/*", id: "fotosInput", class: "hidden", data: { action: "change->photo-preview#preview" } %>
-      </label>
+        Galería
+      </button>
+      <input type="file" id="fotosInput" name="producto[fotos][]" accept="image/*" multiple class="hidden" data-action="change->photo-preview#preview">
+
+      <button type="button" id="btnAnalizarIA" data-has-photos="<%= @producto.fotos.attached? || false %>"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+        </svg>
+        Analizar con IA
+      </button>
+      <input type="file" id="iaCameraInput" accept="image/*" capture="environment" class="hidden">
     </div>
 
     <div data-photo-preview-target="preview" class="mt-3 flex flex-wrap gap-3 min-h-[20px]"></div>
@@ -121,3 +134,127 @@
     <%= f.submit class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8860B] cursor-pointer transition-all duration-200" %>
   </div>
 <% end %>
+
+<!-- Modal de Análisis IA -->
+<div id="iaModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
+  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Análisis de Imagen</h3>
+        <button type="button" id="closeIaModal" class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
+          <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Preview de imagen -->
+      <div id="iaImagePreview" class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center" style="min-height: 150px;">
+        <p class="text-[#9C8B7A] text-sm">Cargando imagen...</p>
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="iaLoading" class="hidden text-center py-8">
+        <div class="relative inline-block w-16 h-16 mb-4">
+          <div class="absolute inset-0 rounded-full border-4 border-[#7C3AED]/20"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-[#7C3AED] animate-spin"></div>
+          <div class="absolute inset-3 flex items-center justify-center">
+            <svg class="w-6 h-6 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-lg font-semibold text-[#2C1810] mb-2">Analizando imagen...</p>
+        <p class="text-sm text-[#6B5744]" id="iaServiceName">Usando Google Gemini</p>
+        <p class="text-xs text-[#9C8B7A] mt-2">Esto puede tardar unos segundos</p>
+      </div>
+
+      <!-- Resultados -->
+      <div id="iaResults" class="hidden">
+        <!-- Confianza -->
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-sm font-medium text-[#6B5744]">Confianza del análisis</span>
+            <span id="iaConfianza" class="text-sm font-bold text-[#2C1810]">0%</span>
+          </div>
+          <div class="w-full bg-[#E8E0D4] rounded-full h-2">
+            <div id="iaConfianzaBar" class="bg-[#B8860B] h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Descripción detectada</label>
+          <textarea id="iaDescripcion" rows="4" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200"></textarea>
+        </div>
+
+        <!-- Tipo y Categoría -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Tipo de producto</label>
+            <input type="text" id="iaTipoProducto" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Categoría sugerida</label>
+            <input type="text" id="iaCategoriaSugerida" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+        </div>
+
+        <!-- Marca/Modelo y Estado -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Marca/Modelo</label>
+            <input type="text" id="iaMarcaModelo" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Estado aparente</label>
+            <select id="iaEstado" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+              <option value="">Seleccionar estado</option>
+              <option value="nuevo">Nuevo</option>
+              <option value="bueno">Bueno</option>
+              <option value="aceptable">Aceptable</option>
+              <option value="desgastado">Desgastado</option>
+              <option value="para_restaurar">Para restaurar</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Errores/Warnings -->
+        <div id="iaErrores" class="hidden mb-4 p-3 bg-[#F4DCDC] rounded-lg text-sm text-[#A63D2F]">
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex flex-col gap-3">
+          <% if !local_assigns[:edit_mode] %>
+          <button type="button" id="btnAplicarIA" class="w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all duration-200">
+            Aplicar al formulario
+          </button>
+          <% end %>
+          <% edit_mode = local_assigns[:edit_mode] || false %>
+          <button type="button" id="btnCrearProductoIA" class="w-full rounded-lg bg-[#7C3AED] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#6D28D9] cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 <%= 'hidden' if edit_mode %>">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Crear nuevo producto con estos datos
+          </button>
+          <button type="button" id="btnCancelarIA" class="w-full rounded-lg border border-[#E8E0D4] px-6 py-2.5 text-sm font-medium text-[#6B5744] hover:bg-[#F5ECD7] cursor-pointer transition-all duration-200">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="iaError" class="hidden text-center py-8">
+        <div class="w-12 h-12 rounded-full bg-[#F4DCDC] flex items-center justify-center mx-auto mb-4">
+          <svg class="w-6 h-6 text-[#A63D2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <p id="iaErrorMsg" class="text-[#A63D2F] mb-4">Error al analizar la imagen</p>
+        <button type="button" id="btnRetryIA" class="rounded-lg border border-[#A63D2F] px-6 py-2.5 text-sm font-medium text-[#A63D2F] hover:bg-[#F4DCDC] cursor-pointer transition-all duration-200">
+          Reintentar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

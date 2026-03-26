@@ -6,5 +6,64 @@
     <% end %>
   </div>
   <h1 class="text-3xl font-bold text-[#2C1810] mb-8" style="font-family: 'Playfair Display', serif;">Nuevo Producto</h1>
-  <%= render "form" %>
+  <%= render "form", edit_mode: false %>
 </div>
+
+<% if @quick_analyze %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Esperar un poco para que la página cargue completamente
+  setTimeout(function() {
+    var btnAnalizar = document.getElementById('btnAnalizarIA');
+    if (btnAnalizar) {
+      btnAnalizar.click();
+    }
+  }, 500);
+});
+</script>
+<% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Verificar si viene imagen de IA en la URL
+  var params = new URLSearchParams(window.location.search);
+  var iaImageData = params.get('ia_image_data');
+  var iaImageKey = params.get('ia_image_key');
+  var fromIa = params.get('from_ia');
+  
+  var imageSrc = null;
+  
+  if (iaImageData) {
+    imageSrc = iaImageData;
+  } else if (iaImageKey) {
+    imageSrc = sessionStorage.getItem(iaImageKey);
+    sessionStorage.removeItem(iaImageKey);
+  }
+  
+  if (imageSrc && fromIa) {
+    // Mostrar la imagen en el área de previsualización
+    var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
+    if (previewContainer) {
+      var imgDiv = document.createElement('div');
+      imgDiv.className = 'relative inline-block ia-preview';
+      imgDiv.innerHTML = '<img src="' + imageSrc + '" class="w-20 h-20 object-cover rounded-lg border-2 border-[#7C3AED]">';
+      imgDiv.innerHTML += '<div class="absolute -top-1 -right-1 bg-[#7C3AED] text-white text-xs px-1.5 py-0.5 rounded">IA</div>';
+      previewContainer.appendChild(imgDiv);
+      
+      // Crear un input file oculto con los datos de la imagen para el formulario
+      var form = document.querySelector('form');
+      if (form) {
+        var hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'producto[ia_image_data]';
+        hiddenInput.value = imageSrc;
+        form.appendChild(hiddenInput);
+      }
+    }
+    
+    // Limpiar URL
+    var cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+  }
+});
+</script>

@@ -97,6 +97,10 @@
         <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Publicado por</span>
         <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.user.nombre %></p>
       </div>
+      <div>
+        <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Fecha de creación</span>
+        <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.created_at.strftime("%d/%m/%Y") %></p>
+      </div>
     </div>
 
     <% if current_user&.admin? || @producto.user_id == current_user&.id %>

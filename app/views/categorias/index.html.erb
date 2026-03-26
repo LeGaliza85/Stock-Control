@@ -15,7 +15,7 @@
             <%= link_to productos_path(categoria: categoria.id), class: "font-semibold text-[#2C1810] hover:text-[#B8860B] transition-colors" do %>
               <%= categoria.nombre %>
             <% end %>
-            <span class="ml-2 text-xs text-[#9C8B7A]">(<%= pluralize(categoria.productos.count, "producto") %>)</span>
+            <span class="ml-2 text-xs text-[#9C8B7A]">(<%= pluralize(categoria.productos_count, "producto") %>)</span>
           </div>
           <div class="flex items-center gap-2">
             <%= link_to edit_categoria_path(categoria), class: "inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-[#6B5744] hover:bg-[#F5ECD7] transition-colors" do %>

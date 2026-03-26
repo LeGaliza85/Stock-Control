@@ -39,8 +39,20 @@
         <div class="hidden md:flex items-center gap-5">
           <% if authenticated? %>
             <span class="text-sm" style="color: var(--text-muted);"><%= Current.session.user.nombre %></span>
+            <% ia_service = Current.session.user.ia_service || "gemini" %>
+            <% ia_used_today = IaUsage.used_today(Current.session.user, ia_service) %>
+            <% ia_limit = IaUsage.limit_for(ia_service) %>
+            <% ia_used_month = IaUsage.used_this_month(Current.session.user, ia_service) %>
+            <% ia_monthly_limit = IaUsage.monthly_limit_for(ia_service) %>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg" style="background-color: rgba(184, 134, 11, 0.15);" title="Hoy: <%= ia_used_today %>/<%= ia_limit %> | Este mes: <%= ia_used_month %>/<%= ia_monthly_limit %>">
+              <svg class="w-4 h-4 text-[#B8860B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+              </svg>
+              <span class="text-xs font-medium" style="color: #B8860B;"><%= ia_used_today %>/<%= ia_limit %> hoy | <%= ia_used_month %>/<%= ia_monthly_limit %> mes</span>
+            </div>
             <%= link_to "Productos", productos_path, class: "text-sm font-medium transition-colors", style: "color: #E8E0D4;", onmouseover: "this.style.color='#B8860B'", onmouseout: "this.style.color='#E8E0D4'" rescue nil %>
             <%= link_to "Categorías", categorias_path, class: "text-sm font-medium transition-colors", style: "color: #E8E0D4;", onmouseover: "this.style.color='#B8860B'", onmouseout: "this.style.color='#E8E0D4'" rescue nil %>
+            <%= link_to "Config IA", config_ia_path, class: "text-sm font-medium transition-colors", style: "color: #B8860B;", onmouseover: "this.style.color='#9A7209'", onmouseout: "this.style.color='#B8860B'" rescue nil %>
             <%= button_to "Cerrar sesion", session_path, method: :delete, class: "text-sm px-3 py-1.5 rounded cursor-pointer font-medium transition-colors", style: "color: var(--text-muted); border: 1px solid #3D2E28;", onmouseover: "this.style.borderColor='#6B5744'; this.style.color='#E8E0D4'", onmouseout: "this.style.borderColor='#3D2E28'; this.style.color='var(--text-muted)'" %>
           <% else %>
             <%= link_to "Iniciar sesion", new_session_path, class: "text-sm font-medium transition-colors", style: "color: #E8E0D4;", onmouseover: "this.style.color='#B8860B'", onmouseout: "this.style.color='#E8E0D4'" %>
@@ -61,6 +73,8 @@
               <div style="border-top: 1px solid #3D2E28; margin: 0.25rem 1rem;"></div>
               <%= link_to "Productos", productos_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #E8E0D4;" rescue nil %>
               <%= link_to "Categorías", categorias_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #E8E0D4;" rescue nil %>
+              <%= link_to "Config IA", config_ia_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #B8860B;" rescue nil %>
+              <div style="border-top: 1px solid #3D2E28; margin: 0.25rem 1rem;"></div>
               <%= button_to "Cerrar sesion", session_path, method: :delete, class: "w-full text-left px-4 py-2 text-sm cursor-pointer transition-colors", style: "color: var(--text-muted);" %>
             <% else %>
               <%= link_to "Iniciar sesion", new_session_path, class: "block px-4 py-2 text-sm transition-colors", style: "color: #E8E0D4;" %>
@@ -118,5 +132,314 @@
 var frm = df.closest("form");
 if (frm) frm.addEventListener("submit", corregir);
 })();</script>
+<script>
+// Image Analysis IA functionality
+(function() {
+  var modal = document.getElementById('iaModal');
+  var btnAnalizar = document.getElementById('btnAnalizarIA');
+  var btnClose = document.getElementById('closeIaModal');
+  var btnCancel = document.getElementById('btnCancelarIA');
+  var btnAplicar = document.getElementById('btnAplicarIA');
+  var btnCrearProducto = document.getElementById('btnCrearProductoIA');
+  var btnRetry = document.getElementById('btnRetryIA');
+  var iaCameraInput = document.getElementById('iaCameraInput');
+  var loading = document.getElementById('iaLoading');
+  var results = document.getElementById('iaResults');
+  var errorDiv = document.getElementById('iaError');
+  var imagePreview = document.getElementById('iaImagePreview');
+  var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+  var currentImageData = null;
+  var currentAnalysis = null;
+  var isIndexPage = !modal; // Si no existe el modal, estamos en index
+
+  // Configurar botón del formulario
+  if (btnAnalizar && iaCameraInput) {
+    btnAnalizar.addEventListener('click', function() {
+      // Primero verificamos si ya hay fotos
+      var imageData = getImageToAnalyze();
+      if (imageData) {
+        // Ya hay foto, abrimos el modal directamente
+        openModalWithImage(imageData);
+      } else {
+        // No hay foto, abrimos la cámara
+        iaCameraInput.click();
+      }
+    });
+  }
+
+  // Configurar input de cámara
+  if (iaCameraInput) {
+    iaCameraInput.addEventListener('change', function(e) {
+      if (e.target.files && e.target.files[0]) {
+        var file = e.target.files[0];
+        openModalWithImage(file);
+      }
+    });
+  }
+
+  function getImageToAnalyze() {
+    var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
+    var previewImages = previewContainer ? previewContainer.querySelectorAll('img') : [];
+    var existingPhotos = document.querySelectorAll('.foto-item img');
+
+    if (previewImages.length > 0) {
+      return previewImages[0].src;
+    }
+    if (existingPhotos.length > 0) {
+      return existingPhotos[0].src;
+    }
+
+    var cameraInput = document.getElementById('cameraInput');
+    var fotosInput = document.getElementById('fotosInput');
+
+    if (cameraInput && cameraInput.files && cameraInput.files[0]) {
+      return cameraInput.files[0];
+    }
+    if (fotosInput && fotosInput.files && fotosInput.files[0]) {
+      return fotosInput.files[0];
+    }
+
+    return null;
+  }
+
+  function fileToBase64(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function() { resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function openModalWithImage(imageData) {
+    if (!modal) return;
+
+    currentImageData = imageData;
+    resetModal();
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    if (typeof imageData === 'object' && imageData.type) {
+      fileToBase64(imageData).then(function(base64) {
+        currentImageData = base64;
+        showImagePreview(base64);
+        analyzeImage();
+      });
+    } else {
+      showImagePreview(imageData);
+      analyzeImage();
+    }
+  }
+
+  function showImagePreview(src) {
+    if (imagePreview) {
+      imagePreview.innerHTML = '<img src="' + src + '" class="max-h-48 mx-auto rounded-lg">';
+    }
+  }
+
+  function resetModal() {
+    if (loading) loading.classList.add('hidden');
+    if (results) results.classList.add('hidden');
+    if (errorDiv) errorDiv.classList.add('hidden');
+    var errorMsg = document.getElementById('iaErrorMsg');
+    if (errorMsg) errorMsg.textContent = 'Error al analizar la imagen';
+  }
+
+  function analyzeImage() {
+    if (!loading) return;
+
+    loading.classList.remove('hidden');
+    if (results) results.classList.add('hidden');
+    if (errorDiv) errorDiv.classList.add('hidden');
+
+    var formData = new FormData();
+    formData.append('image_data', currentImageData);
+
+    fetch('/ia/analyze', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': csrfToken || ''
+      },
+      body: formData
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      loading.classList.add('hidden');
+
+      if (data.error) {
+        showError(data.error, data.necesita_config === true);
+      } else {
+        showResults(data);
+      }
+    })
+    .catch(function(error) {
+      loading.classList.add('hidden');
+      showError('Error de conexión: ' + error.message, false);
+    });
+  }
+
+  function showError(message, necesitaConfig) {
+    if (!errorDiv) return;
+
+    errorDiv.classList.remove('hidden');
+    var errorMsg = document.getElementById('iaErrorMsg');
+    if (errorMsg) {
+      if (necesitaConfig) {
+        errorMsg.innerHTML = message + '<br><br><a href="/config_ia" class="inline-block mt-2 text-[#B8860B] hover:underline font-medium">Ir a configurar API Key →</a>';
+      } else {
+        errorMsg.textContent = message;
+      }
+    }
+  }
+
+  function showResults(data) {
+    if (!results) return;
+
+    results.classList.remove('hidden');
+    currentAnalysis = data;
+
+    var confianza = data.confianza || 0;
+    document.getElementById('iaConfianza').textContent = confianza + '%';
+    document.getElementById('iaConfianzaBar').style.width = confianza + '%';
+
+    var confianzaBar = document.getElementById('iaConfianzaBar');
+    if (confianza >= 80) {
+      confianzaBar.className = 'bg-[#3D5E3D] h-2 rounded-full transition-all duration-500';
+    } else if (confianza >= 50) {
+      confianzaBar.className = 'bg-[#B8860B] h-2 rounded-full transition-all duration-500';
+    } else {
+      confianzaBar.className = 'bg-[#A63D2F] h-2 rounded-full transition-all duration-500';
+    }
+
+    document.getElementById('iaDescripcion').value = data.descripcion || '';
+    document.getElementById('iaTipoProducto').value = data.tipo_producto || '';
+    document.getElementById('iaCategoriaSugerida').value = data.categoria_sugerida || '';
+    document.getElementById('iaMarcaModelo').value = data.marca_modelo || '';
+
+    var estadoSelect = document.getElementById('iaEstado');
+    if (data.estado) {
+      for (var i = 0; i < estadoSelect.options.length; i++) {
+        if (estadoSelect.options[i].value === data.estado) {
+          estadoSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    var erroresDiv = document.getElementById('iaErrores');
+    if (data.errores && data.errores.length > 0) {
+      erroresDiv.classList.remove('hidden');
+      erroresDiv.innerHTML = '<strong>Notas:</strong> ' + data.errores.join(', ');
+    } else {
+      erroresDiv.classList.add('hidden');
+    }
+  }
+
+  function applyToForm() {
+    if (!currentAnalysis) return;
+
+    var descripcion = document.getElementById('iaDescripcion').value;
+    var nombre = document.getElementById('iaMarcaModelo').value || document.getElementById('iaTipoProducto').value;
+    var estado = document.getElementById('iaEstado').value;
+    var categoriaSugerida = document.getElementById('iaCategoriaSugerida').value;
+
+    var nombreInput = document.getElementById('producto_nombre') || document.querySelector('input[name="producto[nombre]"]');
+    var descripcionInput = document.getElementById('descripcionField') || document.querySelector('textarea[name="producto[descripcion]"]');
+    var estadoSelect = document.getElementById('producto_estado') || document.querySelector('select[name="producto[estado]"]');
+
+    if (nombreInput && nombre) nombreInput.value = nombre;
+    if (descripcionInput && descripcion) descripcionInput.value = descripcion;
+    if (estadoSelect && estado) {
+      for (var i = 0; i < estadoSelect.options.length; i++) {
+        if (estadoSelect.options[i].value === estado) {
+          estadoSelect.selectedIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (categoriaSugerida) {
+      var categoriaSelect = document.getElementById('producto_categoria_id') || document.querySelector('select[name="producto[categoria_id]"]');
+      if (categoriaSelect) {
+        for (var j = 0; j < categoriaSelect.options.length; j++) {
+          if (categoriaSelect.options[j].text.toLowerCase().includes(categoriaSugerida.toLowerCase())) {
+            categoriaSelect.selectedIndex = j;
+            break;
+          }
+        }
+      }
+    }
+
+    closeModal();
+  }
+
+  function createNewProduct() {
+    if (!currentAnalysis) return;
+
+    // Verificar si estamos en modo edición
+    var editModeInput = document.getElementById('formEditMode');
+    var isEditMode = editModeInput && editModeInput.value === 'true';
+
+    if (isEditMode) {
+      alert('Ya estás editando un producto existente. Usa "Aplicar al formulario" para guardar los cambios.');
+      return;
+    }
+
+    var descripcion = document.getElementById('iaDescripcion').value;
+    var nombre = document.getElementById('iaMarcaModelo').value || document.getElementById('iaTipoProducto').value;
+    var estado = document.getElementById('iaEstado').value;
+
+    var params = new URLSearchParams();
+    if (nombre) params.set('nombre', nombre);
+    if (descripcion) params.set('descripcion', descripcion);
+    if (estado) params.set('estado', estado);
+    params.set('from_ia', '1');
+
+    // Pasar la imagen en base64 si existe
+    if (currentImageData) {
+      // Si es una URL data:image..., usarla directamente
+      // Si es base64 largo, codificarlo para URL
+      var imageParam = currentImageData;
+      if (currentImageData.length > 50000) {
+        // Imagen muy grande, guardar en sessionStorage y pasar solo la clave
+        var imageKey = 'ia_image_' + Date.now();
+        sessionStorage.setItem(imageKey, currentImageData);
+        params.set('ia_image_key', imageKey);
+      } else {
+        params.set('ia_image_data', currentImageData);
+      }
+    }
+
+    window.location.href = '/productos/new?' + params.toString();
+  }
+
+  function closeModal() {
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+    if (iaCameraInput) iaCameraInput.value = '';
+  }
+
+  if (btnClose) btnClose.addEventListener('click', closeModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeModal);
+  if (btnAplicar) btnAplicar.addEventListener('click', applyToForm);
+  if (btnCrearProducto) btnCrearProducto.addEventListener('click', createNewProduct);
+  if (btnRetry) btnRetry.addEventListener('click', analyzeImage);
+
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+  }
+})();
+</script>
   </body>
 </html>
