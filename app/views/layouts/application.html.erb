@@ -11,15 +11,18 @@
 
     <%= yield :head %>
 
-    <style>
+  <style>
       @media (min-width: 768px) {
         #mobileMenuBtn { display: none; }
         #mobileUserBtn { display: none; }
         #userBtn { display: none; }
         #mobileDropdown { display: none !important; }
       }
-      <!-- Avatar en móvil permanece visible -->
-    </style>
+      @media (max-width: 767px) {
+        #mobileUserBtn { display: none !important; }
+      }
+  /* Avatar en móvil permanece visible */
+  </style>
     <link rel="icon" href="/icon.webp" type="image/webp">
     <link rel="apple-touch-icon" href="/icon.png">
 
@@ -46,44 +49,7 @@
             <a href="<%= categorias_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Categorías</a>
           </div>
 
-          <!-- Avatar: menú de usuario en PC (reinstalar para gestionar usuarios) -->
-          <div style="position: relative;">
-            <button type="button" id="userBtn" onclick="toggleUserMenu(event)" style="display:flex;align-items:center;gap:6px;background:rgba(184,134,11,0.15);border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">
-              <span style="width:26px;height:26px;border-radius:50%;background:#B8860B;color:white;display:flex;align-items:center;justify-content:center;font-size:11px;"><%= current_user.nombre[0].upcase %></span>
-            </button>
-            <div id="userDropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:180px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;padding:8px 0;">
-              <div style="padding:6px 12px;font-size:11px;color:#9C8B7A;border-bottom:1px solid #3D2E28;">Cambiar a:</div>
-              <% User.order(:nombre).each do |u| %>
-                <% if u.id != current_user.id %>
-                  <% if u.rol == 'visitante' %>
-                    <form action="<%= switch_usuarios_path(id: u.id) %>" method="post" style="margin:0;">
-                      <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                      <button type="submit" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:transparent;border:none;color:#E8E0D4;font-size:13px;cursor:pointer;text-align:left;">
-                        <span style="width:22px;height:22px;border-radius:50%;background:#6B5744;color:white;display:flex;align-items:center;justify-content:center;font-size:9px;"><%= u.nombre[0].upcase %></span>
-                        <%= u.nombre %>
-                      </button>
-                    </form>
-                  <% else %>
-                    <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" class="switch-user-btn" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:transparent;border:none;color:#E8E0D4;font-size:13px;cursor:pointer;text-align:left;">
-                      <span style="width:22px;height:22px;border-radius:50%;background:#B8860B;color:white;display:flex;align-items:center;justify-content:center;font-size:9px;"><%= u.nombre[0].upcase %></span>
-                      <%= u.nombre %>
-                    </button>
-                  <% end %>
-                <% end %>
-              <% end %>
-              <% if current_user.rol != 'visitante' %>
-              <div style="border-top:1px solid #3D2E28;margin-top:6px;"></div>
-              <a href="<%= new_usuario_path %>" style="display:block;padding:8px 12px;color:#B8860B;text-decoration:none;font-size:13px;">+ Nuevo usuario</a>
-              <a href="<%= gestionar_usuarios_path %>" data-turbo="false" style="display:block;padding:8px 12px;color:#E8E0D4;text-decoration:none;font-size:13px;">Gestionar usuarios</a>
-              <% end %>
-              <div style="border-top:1px solid #3D2E28;"></div>
-              <form action="<%= session_path %>" method="post" style="margin:0;">
-                <input type="hidden" name="_method" value="delete">
-                <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                <button type="submit" style="display:block;width:100%;padding:8px 12px;color:var(--text-muted);background:transparent;border:none;font-size:13px;cursor:pointer;text-align:left;">Salir</button>
-              </form>
-            </div>
-          </div>
+          <!-- Avatar PC menu eliminado completamente -->
 
           <%# Mobile menu %>
           <div class="md:hidden" style="position:relative;display:flex;align-items:center;gap:8px;">
@@ -95,7 +61,6 @@
               <div id="mobileMenu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:160px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;padding:8px 0;">
                 <a href="<%= productos_path %>" style="display:block;padding:8px 10px;color:#E8E0D4;text-decoration:none;font-size:12px;">Productos</a>
                 <a href="<%= categorias_path %>" style="display:block;padding:8px 10px;color:#E8E0D4;text-decoration:none;font-size:12px;">Categorías</a>
-                <a href="<%= config_ia_path %>" style="display:block;padding:8px 10px;color:#B8860B;text-decoration:none;font-size:12px;">Configuración IA</a>
                 <div style="border-top:1px solid #3D2E28;"></div>
                 <form action="<%= session_path %>" method="post" style="margin:0;">
                   <input type="hidden" name="_method" value="delete">
