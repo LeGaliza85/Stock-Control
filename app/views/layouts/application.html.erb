@@ -11,6 +11,15 @@
 
     <%= yield :head %>
 
+    <style>
+      @media (min-width: 768px) {
+        #mobileMenuBtn { display: none; }
+        #mobileUserBtn { display: none; }
+        #userBtn { display: none; }
+        #mobileDropdown { display: none !important; }
+      }
+      <!-- Avatar en móvil permanece visible -->
+    </style>
     <link rel="icon" href="/icon.webp" type="image/webp">
     <link rel="apple-touch-icon" href="/icon.png">
 
@@ -35,15 +44,14 @@
           <div class="hidden md:flex items-center gap-3">
             <a href="<%= productos_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Productos</a>
             <a href="<%= categorias_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Categorías</a>
-            <a href="<%= config_ia_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Configuración IA</a>
           </div>
 
-          <%# User menu on the right %>
+          <!-- Avatar: menú de usuario en PC (reinstalar para gestionar usuarios) -->
           <div style="position: relative;">
             <button type="button" id="userBtn" onclick="toggleUserMenu(event)" style="display:flex;align-items:center;gap:6px;background:rgba(184,134,11,0.15);border:none;padding:6px 10px;border-radius:6px;cursor:pointer;">
               <span style="width:26px;height:26px;border-radius:50%;background:#B8860B;color:white;display:flex;align-items:center;justify-content:center;font-size:11px;"><%= current_user.nombre[0].upcase %></span>
             </button>
-              <div id="userDropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:180px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;padding:8px 0;">
+            <div id="userDropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:180px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;padding:8px 0;">
               <div style="padding:6px 12px;font-size:11px;color:#9C8B7A;border-bottom:1px solid #3D2E28;">Cambiar a:</div>
               <% User.order(:nombre).each do |u| %>
                 <% if u.id != current_user.id %>
@@ -64,7 +72,7 @@
                 <% end %>
               <% end %>
               <% if current_user.rol != 'visitante' %>
-              <div style="border-top:1px solid #3D2E28;"></div>
+              <div style="border-top:1px solid #3D2E28;margin-top:6px;"></div>
               <a href="<%= new_usuario_path %>" style="display:block;padding:8px 12px;color:#B8860B;text-decoration:none;font-size:13px;">+ Nuevo usuario</a>
               <a href="<%= gestionar_usuarios_path %>" data-turbo="false" style="display:block;padding:8px 12px;color:#E8E0D4;text-decoration:none;font-size:13px;">Gestionar usuarios</a>
               <% end %>
@@ -87,6 +95,7 @@
               <div id="mobileMenu" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:160px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;padding:8px 0;">
                 <a href="<%= productos_path %>" style="display:block;padding:8px 10px;color:#E8E0D4;text-decoration:none;font-size:12px;">Productos</a>
                 <a href="<%= categorias_path %>" style="display:block;padding:8px 10px;color:#E8E0D4;text-decoration:none;font-size:12px;">Categorías</a>
+                <a href="<%= config_ia_path %>" style="display:block;padding:8px 10px;color:#B8860B;text-decoration:none;font-size:12px;">Configuración IA</a>
                 <div style="border-top:1px solid #3D2E28;"></div>
                 <form action="<%= session_path %>" method="post" style="margin:0;">
                   <input type="hidden" name="_method" value="delete">
@@ -98,10 +107,10 @@
 
             <%# Menu de usuarios %>
             <div style="position:relative;">
-              <button type="button" id="mobileUserBtn" onclick="toggleMobileUserMenu(event)" style="display:flex;align-items:center;gap:4px;background:transparent;border:none;color:var(--accent);padding:4px 8px;border-radius:4px;cursor:pointer;">
+            <button type="button" id="mobileUserBtn" aria-controls="mobileDropdown" aria-expanded="false" onclick="toggleMobileUserMenu(event)" style="display:flex;align-items:center;gap:4px;background:transparent;border:none;color:var(--accent);padding:4px 8px;border-radius:4px;cursor:pointer;">
                 <span style="width:28px;height:28px;border-radius:50%;background:<%= current_user.rol == 'admin' ? '#B8860B' : '#6B5744' %>;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;"><%= current_user.nombre[0].upcase %></span>
               </button>
-              <div id="mobileDropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:160px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:100;padding:8px 0;">
+              <div id="mobileDropdown" style="display:none;position:absolute;right:0;top:100%;margin-top:4px;min-width:160px;background:#2A1E1A;border:1px solid #3D2E28;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:999;padding:8px 0;">
                 <div style="padding:6px 10px;font-size:10px;color:#9C8B7A;border-bottom:1px solid #3D2E28;">Cambiar a:</div>
                 <% User.order(:nombre).each do |u| %>
                   <% if u.id != current_user.id %>
@@ -189,7 +198,11 @@ function toggleMobileMenu(e) {
 function toggleMobileUserMenu(e) {
   e.stopPropagation();
   var d = document.getElementById('mobileDropdown');
-  d.style.display = (d.style.display === 'block') ? 'none' : 'block';
+  var isOpen = d.style.display === 'block';
+  d.style.display = isOpen ? 'none' : 'block';
+  // Update ARIA state
+  var btn = document.getElementById('mobileUserBtn');
+  if (btn) btn.setAttribute('aria-expanded', String(!isOpen));
   document.getElementById('userDropdown').style.display = 'none';
   var mm = document.getElementById('mobileMenu');
   if (mm) mm.style.display = 'none';
