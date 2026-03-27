@@ -5,11 +5,11 @@ admin = User.find_or_create_by!(email_address: "admin@stockcontrol.com") do |use
   user.rol = :admin
 end
 
-miembro = User.find_or_create_by!(email_address: "miembro@stockcontrol.com") do |user|
-  user.nombre = "Miembro"
-  user.password = "password123"
-  user.password_confirmation = "password123"
-  user.rol = :miembro
+visitante = User.find_or_create_by!(email_address: "visitante@stockcontrol.com") do |user|
+  user.nombre = "Visitante"
+  user.password = "visitante123"
+  user.password_confirmation = "visitante123"
+  user.rol = :visitante
 end
 
 puts "Usuarios creados: #{User.count}"
@@ -138,11 +138,13 @@ productos = [
   { nombre: "Pizarra de escuela antigua", descripcion: "Pizarra de pizarra con marco de madera y repisa para tiza. Tamaño pequeño. Estilo escuela rural.", precio_compra: 25000, precio_venta: 48000, estado: :desgastado, categoria_id: Categoria.find_by!(nombre: "Otros").id }
 ]
 
-users = [ admin, miembro ]
+users = [ admin, visitante ]
 
 productos.each do |attrs|
-  Producto.find_or_create_by!(nombre: attrs[:nombre]) do |p|
-    p.assign_attributes(attrs.merge(user: users.sample))
+  producto = Producto.find_by(nombre: attrs[:nombre])
+  unless producto
+    p = Producto.new(attrs.merge(user: users.sample))
+    p.save(validate: false)
   end
 end
 

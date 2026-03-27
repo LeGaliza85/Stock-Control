@@ -1,6 +1,7 @@
 class ProductosController < ApplicationController
   before_action :set_producto, only: [ :show, :edit, :update, :destroy ]
   before_action :authorize_owner!, only: [ :edit, :update, :destroy ]
+  before_action :require_no_visitante, only: [ :new, :create, :edit, :update, :destroy ]
 
   def index
     @productos = Producto.includes(:user, :categoria).with_attached_fotos.order(created_at: :desc)
@@ -34,6 +35,13 @@ class ProductosController < ApplicationController
     fotos_nuevas = params[:producto]&.delete(:fotos)
     ia_image_data = params[:producto]&.delete(:ia_image_data)
 
+    Rails.logger.warn "=== CREATE PRODUCT DEBUG ==="
+    Rails.logger.warn "ia_image_data present: #{ia_image_data.present?}"
+    Rails.logger.warn "ia_image_data starts with data:image: #{ia_image_data&.start_with?("data:image")}"
+    Rails.logger.warn "ia_image_data length: #{ia_image_data&.length || 0}"
+    Rails.logger.warn "fotos_nuevas present: #{fotos_nuevas.present?}"
+    Rails.logger.warn "==========================="
+
     @producto = current_user.productos.build(producto_params)
 
     if ia_image_data.present? && ia_image_data.start_with?("data:image")
@@ -46,9 +54,13 @@ class ProductosController < ApplicationController
           filename: filename,
           content_type: "image/jpeg"
         )
+        Rails.logger.warn "IA image attached, fotos count: #{@producto.fotos.count}"
       rescue => e
         Rails.logger.error "Error al procesar imagen IA: #{e.message}"
+        Rails.logger.error e.backtrace.first(5).join("\n")
       end
+    else
+      Rails.logger.warn "IA image NOT attached - ia_image_data: #{ia_image_data.nil? ? 'nil' : 'empty or wrong format'}"
     end
 
     if @producto.save
@@ -68,6 +80,8 @@ class ProductosController < ApplicationController
     fotos_a_eliminar = params[:producto]&.delete(:fotos_a_eliminar) || []
     fotos_nuevas = params[:producto]&.delete(:fotos)
 
+    @producto.last_updated_by_id = current_user.id
+
     if @producto.update(producto_params)
       fotos_a_eliminar.each do |foto_id|
         @producto.fotos.find(foto_id.to_i)&.purge_later
@@ -85,7 +99,10 @@ class ProductosController < ApplicationController
 
   def destroy
     @producto.destroy
-    redirect_to productos_path, notice: "Producto eliminado exitosamente."
+    respond_to do |format|
+      format.html { redirect_to productos_path, notice: "Producto eliminado exitosamente." }
+      format.json { render json: { success: true, redirect: productos_path } }
+    end
   end
 
   def suggestions
@@ -109,6 +126,12 @@ class ProductosController < ApplicationController
 
   def authorize_owner!
     unless current_user.admin? || @producto.user_id == current_user.id
+      redirect_to productos_path, alert: "No tienes permiso para realizar esta acción"
+    end
+  end
+
+  def require_no_visitante
+    if current_user.visitante?
       redirect_to productos_path, alert: "No tienes permiso para realizar esta acción"
     end
   end

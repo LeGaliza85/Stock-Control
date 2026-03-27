@@ -9,6 +9,17 @@ Rails.application.routes.draw do
   end
   resources :categorias
 
+  get "gestionar_usuarios", to: "usuarios#gestionar", defaults: { format: "html" }
+  resources :usuarios do
+    collection do
+      post :switch
+      post :switch_to_admin
+      post :switch_with_password
+      post :verify_password
+      post :verify_admin
+    end
+  end
+
   scope :ia, as: :ia do
     post :analyze, to: "image_analysis#analyze"
     get :services, to: "image_analysis#services"

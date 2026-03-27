@@ -24,46 +24,73 @@ document.addEventListener('DOMContentLoaded', function() {
 <% end %>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Verificar si viene imagen de IA en la URL
+function initIAImage() {
   var params = new URLSearchParams(window.location.search);
-  var iaImageData = params.get('ia_image_data');
   var iaImageKey = params.get('ia_image_key');
   var fromIa = params.get('from_ia');
   
-  var imageSrc = null;
-  
-  if (iaImageData) {
-    imageSrc = iaImageData;
-  } else if (iaImageKey) {
-    imageSrc = sessionStorage.getItem(iaImageKey);
+  if (iaImageKey && fromIa) {
+    var imageSrc = sessionStorage.getItem(iaImageKey);
+    console.log('Imagen recuperada de sessionStorage:', iaImageKey, 'tamaño:', imageSrc ? imageSrc.length : 0);
     sessionStorage.removeItem(iaImageKey);
-  }
-  
-  if (imageSrc && fromIa) {
-    // Mostrar la imagen en el área de previsualización
-    var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
-    if (previewContainer) {
-      var imgDiv = document.createElement('div');
-      imgDiv.className = 'relative inline-block ia-preview';
-      imgDiv.innerHTML = '<img src="' + imageSrc + '" class="w-20 h-20 object-cover rounded-lg border-2 border-[#7C3AED]">';
-      imgDiv.innerHTML += '<div class="absolute -top-1 -right-1 bg-[#7C3AED] text-white text-xs px-1.5 py-0.5 rounded">IA</div>';
-      previewContainer.appendChild(imgDiv);
+    
+    if (imageSrc) {
+      // Guardar en variable global para usar en submit
+      window.iaImageDataGlobal = imageSrc;
       
-      // Crear un input file oculto con los datos de la imagen para el formulario
-      var form = document.querySelector('form');
-      if (form) {
-        var hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'producto[ia_image_data]';
-        hiddenInput.value = imageSrc;
-        form.appendChild(hiddenInput);
+      function agregarInput() {
+        var form = document.querySelector('form');
+        if (form) {
+          if (form.querySelector('input[name="producto[ia_image_data]"]')) {
+            console.log('Input ya existe');
+            return true;
+          }
+          
+          var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
+          if (previewContainer) {
+            var imgDiv = document.createElement('div');
+            imgDiv.className = 'relative inline-block ia-preview';
+            imgDiv.innerHTML = '<img src="' + imageSrc + '" class="w-20 h-20 object-cover rounded-lg border-2 border-[#7C3AED]">';
+            imgDiv.innerHTML += '<div class="absolute -top-1 -right-1 bg-[#7C3AED] text-white text-xs px-1.5 py-0.5 rounded">IA</div>';
+            previewContainer.appendChild(imgDiv);
+          }
+          
+          var hiddenInput = document.createElement('input');
+          hiddenInput.type = 'hidden';
+          hiddenInput.name = 'producto[ia_image_data]';
+          hiddenInput.value = imageSrc;
+          form.appendChild(hiddenInput);
+          console.log('Input hidden creado con imagen de tamaño:', imageSrc.length);
+          return true;
+        }
+        return false;
+      }
+      
+      if (!agregarInput()) {
+        setTimeout(agregarInput, 100);
       }
     }
     
-    // Limpiar URL
     var cleanUrl = window.location.pathname;
     window.history.replaceState({}, document.title, cleanUrl);
+  }
+}
+
+document.addEventListener('turbo:load', initIAImage);
+document.addEventListener('DOMContentLoaded', initIAImage);
+
+// También intentar en el submit del formulario
+document.addEventListener('submit', function(e) {
+  var form = e.target;
+  if (form && window.iaImageDataGlobal) {
+    if (!form.querySelector('input[name="producto[ia_image_data]"]')) {
+      var hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'producto[ia_image_data]';
+      hiddenInput.value = window.iaImageDataGlobal;
+      form.appendChild(hiddenInput);
+      console.log('Input agregado en submit:', window.iaImageDataGlobal.length);
+    }
   }
 });
 </script>

@@ -3,7 +3,8 @@ class IaUsage < ApplicationRecord
 
   LIMITS = {
     "gemini" => { daily: 1500, monthly: 45000, label: "solicitudes" },
-    "moondream" => { daily: 5000, monthly: 150000, label: "solicitudes" }
+    "moondream" => { daily: 5000, monthly: 150000, label: "solicitudes" },
+    "openrouter" => { daily: 50, monthly: 1000, label: "solicitudes" }
   }.freeze
 
   def self.record_request(user, ia_service)

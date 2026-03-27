@@ -1,18 +1,43 @@
 class ConfiguracionController < ApplicationController
+  GEMINI_MODELS = {
+    "gemini-2.5-flash" => { name: "Gemini 2.5 Flash", description: "Modelo rápido y preciso. Recomendado." },
+    "gemini-3-flash-preview" => "Gemini 3 Flash Preview",
+    "gemini-2.5-flash-lite" => "Gemini 2.5 Flash Lite"
+  }.freeze
+
   def ia
-    gemini_stats = IaUsage.usage_stats(current_user, "gemini")
-    moondream_stats = IaUsage.usage_stats(current_user, "moondream")
+    @ia_services = %w[openrouter gemini].map do |service|
+      stats = IaUsage.usage_stats(current_user, service)
+      {
+        id: service,
+        name: service_name(service),
+        description: service_description(service),
+        used_today: stats[:used_today],
+        limit_today: stats[:limit_today],
+        used_month: stats[:used_month],
+        limit_month: stats[:limit_month],
+        label: stats[:label]
+      }
+    end
 
-    @gemini_used_today = gemini_stats[:used_today]
-    @gemini_limit = gemini_stats[:limit_today]
-    @gemini_label = gemini_stats[:label]
-    @gemini_used_month = gemini_stats[:used_month]
-    @gemini_monthly_limit = gemini_stats[:limit_month]
+    @current_service = current_user.ia_service || "gemini"
+    @gemini_models = GEMINI_MODELS
+    @current_gemini_model = current_user.gemini_model || "gemini-2.5-flash"
+  end
 
-    @moondream_used_today = moondream_stats[:used_today]
-    @moondream_limit = moondream_stats[:limit_today]
-    @moondream_label = moondream_stats[:label]
-    @moondream_used_month = moondream_stats[:used_month]
-    @moondream_monthly_limit = moondream_stats[:limit_month]
+  private
+
+  def service_name(id)
+    {
+      "gemini" => "Google Gemini",
+      "openrouter" => "OpenRouter (Gemini)"
+    }[id]
+  end
+
+  def service_description(id)
+    {
+      "gemini" => "API de Google. Selección de modelos disponibles.",
+      "openrouter" => "Gemini a través de OpenRouter con fallback automático entre modelos."
+    }[id]
   end
 end

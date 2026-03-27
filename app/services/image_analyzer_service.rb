@@ -8,12 +8,20 @@ class ImageAnalyzerService
     "gemini-2.5-flash-lite" => { input_cost: 0.075, output_cost: 0.30, context: "1M" }
   }.freeze
 
+  OPENROUTER_MODELS = [
+    "google/gemini-3.1-flash-lite-preview",
+    "google/gemini-2.5-flash-lite",
+    "google/gemini-2.0-flash-lite"
+  ].freeze
+
   MOONDREAM_CLOUD_URL = "https://api.moondream.ai".freeze
   GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models".freeze
+  OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions".freeze
 
   def initialize(user)
     @user = user
     @ia_service = user.ia_service || "gemini"
+    @gemini_model = user.gemini_model || "gemini-2.5-flash"
   end
 
   def analyze(image_data, model: nil)
@@ -21,9 +29,9 @@ class ImageAnalyzerService
 
     case @ia_service
     when "gemini"
-      analyze_with_gemini(image_data, model: model || "gemini-2.5-flash")
-    when "moondream"
-      analyze_with_moondream(image_data)
+      analyze_with_gemini(image_data, model: model || @gemini_model)
+    when "openrouter"
+      analyze_with_openrouter(image_data)
     else
       raise ArgumentError, "Servicio de IA no soportado: #{@ia_service}"
     end
@@ -31,8 +39,8 @@ class ImageAnalyzerService
 
   def available_services
     [
-      { id: "gemini", name: "Google Gemini", free: true, description: "Altamente preciso, reconocimiento de marcas y objetos" },
-      { id: "moondream", name: "Moondream", free: true, description: "IA ligera y rápida. 5,000 solicitudes/día gratis" }
+      { id: "gemini", name: "Google Gemini", free: true, description: "Selección de modelos Gemini" },
+      { id: "openrouter", name: "OpenRouter (Gemini)", free: true, description: "Gemini a través de OpenRouter con fallback automático" }
     ]
   end
 
@@ -108,7 +116,7 @@ class ImageAnalyzerService
 
     base64_image = prepare_image(image_data)
 
-    uri = URI("#{MOONDREAM_CLOUD_URL}/v1/query")
+    uri = URI("#{MOONDREAM_CLOUD_URL}/v1/chat/completions")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
     http.open_timeout = 30
@@ -116,10 +124,15 @@ class ImageAnalyzerService
 
     request = Net::HTTP::Post.new(uri)
     request["Content-Type"] = "application/json"
-    request["X-API-Key"] = api_key
+    request["Authorization"] = "Bearer #{api_key}"
     request.body = {
-      image_url: "data:image/jpeg;base64,#{base64_image}",
-      question: "Describe this product. What is it? What brand/model? What condition? Return only JSON: {\"descripcion\":\"...\",\"categoria_sugerida\":\"...\",\"tipo_producto\":\"...\",\"marca_modelo\":\"...\",\"estado\":\"bueno\",\"etiqueta\":\"en_venta\",\"confianza\":85}",
+      model: "moondream-2B",
+      messages: [
+        {
+          role: "user",
+          content: "Analiza esta imagen de un producto y proporciona una descripción detallada en español, categoría sugerida, tipo de producto, marca/modelo (si identificable), estado aparente (nuevo/bueno/aceptable/desgastado/para_restaurar), etiquetas sugeridas (en_venta/reservado/vendido/en_restauracion) y confianza del 0-100%. Responde SOLO en JSON con este formato exacto: {\"descripcion\":\"...\",\"categoria_sugerida\":\"...\",\"tipo_producto\":\"...\",\"marca_modelo\":\"...\",\"estado\":\"...\",\"etiqueta\":\"...\",\"confianza\":0-100}. No escribas nada más que el JSON."
+        }
+      ],
       stream: false
     }.to_json
 
@@ -130,11 +143,108 @@ class ImageAnalyzerService
     end
 
     parsed = JSON.parse(response.body)
-    parse_moondream_response(parsed)
+    parse_moondream_chat_response(parsed)
   rescue JSON::ParserError => e
     { error: "Error al parsear respuesta de Moondream: #{e.message}", confianza: 0 }
   rescue => e
     { error: "Error con Moondream: #{e.message}", confianza: 0 }
+  end
+
+  def analyze_with_openrouter(image_data)
+    api_key = ENV["OPENROUTER_API_KEY"]
+
+    if api_key.nil? || api_key.empty?
+      return {
+        error: "API key de OpenRouter no configurada. Contacta al administrador.",
+        confianza: 0,
+        necesita_config: true
+      }
+    end
+
+    base64_image = prepare_image(image_data)
+    prompt = "Eres un experto en antigüedades y objetos de segunda mano. Analiza esta imagen de un producto y proporciona una descripción detallada en español, categoría sugerida, tipo de producto, marca/modelo (si identificable), estado aparente (nuevo/bueno/aceptable/desgastado/para_restaurar), etiquetas sugeridas (en_venta/reservado/vendido/en_restauracion) y confianza del 0-100%. Responde SOLO en JSON con este formato exacto: {\"descripcion\":\"...\",\"categoria_sugerida\":\"...\",\"tipo_producto\":\"...\",\"marca_modelo\":\"...\",\"estado\":\"...\",\"etiqueta\":\"...\",\"confianza\":0-100}. No escribas nada más que el JSON."
+
+    uri = URI(OPENROUTER_URL)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 30
+    http.read_timeout = 60
+
+    OPENROUTER_MODELS.each do |model|
+      request = Net::HTTP::Post.new(uri)
+      request["Content-Type"] = "application/json"
+      request["Authorization"] = "Bearer #{api_key}"
+      request.body = {
+        model: model,
+        max_tokens: 500,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: "data:image/jpeg;base64,#{base64_image}" } }
+            ]
+          }
+        ],
+        stream: false
+      }.to_json
+
+      begin
+        response = http.request(request)
+        parsed = JSON.parse(response.body)
+
+        # Si la respuesta es exitosa, procesar
+        if response.is_a?(Net::HTTPSuccess)
+          result = parse_openrouter_response(parsed)
+          result["source"] = "openrouter"
+          return result
+        end
+
+        # Si es error 429 (rate limit) o 402 (no créditos), intentar siguiente modelo
+        if [429, 402, 400, 503].include?(response.code.to_i)
+          next
+        end
+
+        # Para otros errores, devolver el error
+        error_msg = parsed.dig("error", "message") || "Error desconocido"
+        return { error: "Error de OpenRouter (#{model}): #{response.code} - #{error_msg}", confianza: 0 }
+      rescue StandardError => e
+        # Si falla la conexión, intentar siguiente modelo
+        next
+      end
+    end
+
+    { error: "Todos los modelos de OpenRouter fallaron. Intenta más tarde o cambia el servicio de IA.", confianza: 0 }
+  end
+
+  def parse_openrouter_response(response)
+    choices = response["choices"]
+    return { error: "No se recibió respuesta de OpenRouter", confianza: 0 } unless choices && choices.any?
+
+    message = choices[0]["message"]
+    return { error: "No se recibió mensaje de OpenRouter", confianza: 0 } unless message
+
+    content = message["content"]
+    return { error: "No se recibió contenido de OpenRouter", confianza: 0 } unless content
+
+    json_match = content.match(/\{.*\}/m)
+    if json_match
+      parsed = JSON.parse(json_match[0])
+      return parsed.merge("source" => "openrouter")
+    end
+
+    {
+      "descripcion" => content,
+      "categoria_sugerida" => "General",
+      "tipo_producto" => "Producto",
+      "marca_modelo" => "",
+      "estado" => "bueno",
+      "etiqueta" => "en_venta",
+      "confianza" => 75,
+      "source" => "openrouter"
+    }
+  rescue JSON::ParserError => e
+    { error: "Error al procesar respuesta de OpenRouter: #{e.message}", confianza: 0 }
   end
 
   def prepare_image(image_data)
@@ -213,5 +323,35 @@ class ImageAnalyzerService
     }
   rescue JSON::ParserError
     { error: "Error al procesar respuesta de Moondream", confianza: 0 }
+  end
+
+  def parse_moondream_chat_response(response)
+    choices = response["choices"]
+    return { error: "No se recibió respuesta de Moondream", confianza: 0 } unless choices && choices.any?
+
+    message = choices[0]["message"]
+    return { error: "No se recibió mensaje de Moondream", confianza: 0 } unless message
+
+    content = message["content"]
+    return { error: "No se recibió contenido de Moondream", confianza: 0 } unless content
+
+    json_match = content.match(/\{.*\}/m)
+    if json_match
+      parsed = JSON.parse(json_match[0])
+      return parsed.merge("source" => "moondream")
+    end
+
+    {
+      "descripcion" => content,
+      "categoria_sugerida" => "General",
+      "tipo_producto" => "Producto",
+      "marca_modelo" => "",
+      "estado" => "bueno",
+      "etiqueta" => "en_venta",
+      "confianza" => 75,
+      "source" => "moondream"
+    }
+  rescue JSON::ParserError => e
+    { error: "Error al procesar respuesta de Moondream: #{e.message}", confianza: 0 }
   end
 end

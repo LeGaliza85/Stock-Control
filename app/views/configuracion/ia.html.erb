@@ -25,64 +25,49 @@
         <div>
           <label class="block text-sm font-medium text-[#6B5744] mb-3">Servicio de IA para análisis de imágenes</label>
           <div class="space-y-3">
-            <!-- Google Gemini -->
-            <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= current_user.ia_service == 'gemini' ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4] hover:border-[#B8860B]/50' %>" data-service="gemini">
-              <%= f.radio_button :ia_service, "gemini", class: "mt-1 accent-[#B8860B]", checked: current_user.ia_service == "gemini" %>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <span class="font-semibold text-[#2C1810]">Google Gemini</span>
+            <% @ia_services.each do |service| %>
+              <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= service[:id] == @current_service ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4]' %>" data-service="<%= service[:id] %>">
+                <%= f.radio_button :ia_service, service[:id], class: "mt-1 accent-[#B8860B]", checked: service[:id] == @current_service %>
+                <div class="flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-semibold text-[#2C1810]"><%= service[:name] %></span>
+                  </div>
+                  <div class="mt-2 flex flex-col gap-1">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="text-[#6B5744]">Hoy:</span>
+                      <span class="font-medium text-[#2C1810]"><%= service[:used_today] %> / <%= number_with_delimiter(service[:limit_today]) %> <%= service[:label] %></span>
+                    </div>
+                    <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
+                      <div class="bg-[#10B981] h-1.5 rounded-full" style="width: <%= service[:limit_today] > 0 ? (service[:used_today].to_f / service[:limit_today] * 100).round : 0 %>%"></div>
+                    </div>
+                    <div class="flex items-center justify-between text-xs mt-1">
+                      <span class="text-[#6B5744]">Este mes:</span>
+                      <span class="font-medium text-[#2C1810]"><%= service[:used_month] %> / <%= number_with_delimiter(service[:limit_month]) %> <%= service[:label] %></span>
+                    </div>
+                    <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
+                      <div class="bg-[#059669] h-1.5 rounded-full" style="width: <%= service[:limit_month] > 0 ? (service[:used_month].to_f / service[:limit_month] * 100).round : 0 %>%"></div>
+                    </div>
+                  </div>
+                  <p class="text-sm text-[#6B5744] mt-2">
+                    <%= service[:description] %>
+                  </p>
                 </div>
-                <div class="mt-2 flex flex-col gap-1">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="text-[#6B5744]">Hoy:</span>
-                    <span class="font-medium text-[#2C1810]"><%= @gemini_used_today %> / <%= number_with_delimiter(@gemini_limit) %> <%= @gemini_label %></span>
-                  </div>
-                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
-                    <div class="bg-[#B8860B] h-1.5 rounded-full" style="width: <%= @gemini_limit > 0 ? (@gemini_used_today.to_f / @gemini_limit * 100).round : 0 %>%"></div>
-                  </div>
-                  <div class="flex items-center justify-between text-xs mt-1">
-                    <span class="text-[#6B5744]">Este mes:</span>
-                    <span class="font-medium text-[#2C1810]"><%= @gemini_used_month %> / <%= number_with_delimiter(@gemini_monthly_limit) %> <%= @gemini_label %></span>
-                  </div>
-                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
-                    <div class="bg-[#9A7209] h-1.5 rounded-full" style="width: <%= @gemini_monthly_limit > 0 ? (@gemini_used_month.to_f / @gemini_monthly_limit * 100).round : 0 %>%"></div>
-                  </div>
-                </div>
-                <p class="text-sm text-[#6B5744] mt-2">
-                  Altamente preciso. Identifica marcas, modelos y estado del producto.
-                </p>
-              </div>
-            </label>
-
-            <!-- Moondream -->
-            <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= current_user.ia_service == 'moondream' ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4] hover:border-[#B8860B]/50' %>" data-service="moondream">
-              <%= f.radio_button :ia_service, "moondream", class: "mt-1 accent-[#B8860B]", checked: current_user.ia_service == "moondream" %>
-              <div class="flex-1">
-                <div class="flex items-center justify-between">
-                  <span class="font-semibold text-[#2C1810]">Moondream</span>
-                </div>
-                <div class="mt-2 flex flex-col gap-1">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="text-[#6B5744]">Hoy:</span>
-                    <span class="font-medium text-[#2C1810]"><%= @moondream_used_today %> / <%= number_with_delimiter(@moondream_limit) %> <%= @moondream_label %></span>
-                  </div>
-                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
-                    <div class="bg-[#7C3AED] h-1.5 rounded-full" style="width: <%= @moondream_limit > 0 ? (@moondream_used_today.to_f / @moondream_limit * 100).round : 0 %>%"></div>
-                  </div>
-                  <div class="flex items-center justify-between text-xs mt-1">
-                    <span class="text-[#6B5744]">Este mes:</span>
-                    <span class="font-medium text-[#2C1810]"><%= @moondream_used_month %> / <%= number_with_delimiter(@moondream_monthly_limit) %> <%= @moondream_label %></span>
-                  </div>
-                  <div class="w-full bg-[#E8E0D4] rounded-full h-1.5">
-                    <div class="bg-[#5B21B6] h-1.5 rounded-full" style="width: <%= @moondream_monthly_limit > 0 ? (@moondream_used_month.to_f / @moondream_monthly_limit * 100).round : 0 %>%"></div>
-                  </div>
-                </div>
-                <p class="text-sm text-[#6B5744] mt-2">
-                  IA ligera y rápida. Funciona en móvil y PC.
-                </p>
-              </div>
-            </label>
+              </label>
+            <% end %>
           </div>
+        </div>
+
+        <div id="geminiModelSelect" class="<%= @current_service == 'gemini' ? '' : 'hidden' %>">
+          <label class="block text-sm font-medium text-[#6B5744] mb-2">Modelo de Gemini</label>
+          <%= f.select :gemini_model, 
+              options_for_select(
+                @gemini_models.map { |key, val| [val.is_a?(Hash) ? val[:name] : val, key] },
+                @current_gemini_model
+              ),
+              {}, 
+              class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" 
+          %>
+          <p class="text-xs text-[#6B5744] mt-1">Selecciona el modelo de Gemini que deseas usar</p>
         </div>
 
         <div class="pt-4">
@@ -96,6 +81,17 @@
 document.addEventListener('DOMContentLoaded', function() {
   var options = document.querySelectorAll('.ia-service-option');
   var radios = document.querySelectorAll('input[name="ia_service"]');
+  var geminiSelect = document.getElementById('geminiModelSelect');
+
+  function updateGeminiSelect(serviceId) {
+    if (geminiSelect) {
+      if (serviceId === 'gemini') {
+        geminiSelect.classList.remove('hidden');
+      } else {
+        geminiSelect.classList.add('hidden');
+      }
+    }
+  }
 
   radios.forEach(function(radio) {
     radio.addEventListener('change', function() {
@@ -108,8 +104,11 @@ document.addEventListener('DOMContentLoaded', function() {
           opt.classList.add('border-[#E8E0D4]');
         }
       });
+      updateGeminiSelect(radio.value);
     });
   });
+
+  updateGeminiSelect('<%= @current_service %>');
 });
 </script>
 </div>

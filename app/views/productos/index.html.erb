@@ -1,20 +1,22 @@
 <div class="w-full">
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <h1 class="text-3xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Inventario</h1>
-    <div class="flex gap-3">
-      <button type="button" id="btnAnalizarIAIndex"
-        class="inline-flex items-center gap-2 rounded-lg border-2 border-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-all duration-200">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-        </svg>
-        Analizar con IA
-      </button>
-      <input type="file" id="iaCameraInputIndex" accept="image/*" capture="environment" class="hidden">
-      <%= link_to new_producto_path, class: "inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-        Nuevo Producto
-      <% end %>
-    </div>
+    <% unless current_user.visitante? %>
+      <div class="flex gap-3">
+        <button type="button" id="btnAnalizarIAIndex"
+          class="inline-flex items-center gap-2 rounded-lg border-2 border-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-all duration-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          Analizar con IA
+        </button>
+        <input type="file" id="iaCameraInputIndex" accept="image/*" capture="environment" class="hidden">
+        <%= link_to new_producto_path, class: "inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          Nuevo Producto
+        <% end %>
+      </div>
+    <% end %>
   </div>
 
   <%# Barra de búsqueda %>
@@ -100,16 +102,57 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @productos.each do |producto| %>
           <%= link_to producto, data: { turbo_frame: "_top" }, class: "group block bg-white rounded-xl border border-[#E8E0D4] shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-b-[#B8860B] hover:border-b-2 transition-all duration-200 overflow-hidden" do %>
-            <div class="aspect-square bg-[#FAF7F2] flex items-center justify-center overflow-hidden rounded-t-xl">
+            <div class="aspect-square bg-[#FAF7F2] flex items-center justify-center overflow-hidden rounded-t-xl relative">
               <% if producto.fotos.attached? %>
                 <%= image_tag producto.fotos.first.variant(resize_to_limit: [300, 300]), class: "object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" %>
+                <%
+                  etiqueta_colors = {
+                    "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
+                    "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
+                    "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
+                    "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
+                  }
+                  etiqueta_textos = {
+                    "en_venta" => "EN VENTA",
+                    "reservado" => "RESERVADO",
+                    "vendido" => "VENDIDO",
+                    "en_restauracion" => "EN RESTAURACIÓN"
+                  }
+                %>
+                <div class="absolute top-0 left-0 w-full <%= etiqueta_colors[producto.etiqueta] %> text-white text-[10px] font-bold text-center py-0.5">
+                  <%= etiqueta_textos[producto.etiqueta] %>
+                </div>
               <% else %>
                 <div class="flex flex-col items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#E8E0D4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                   <span class="text-[#9C8B7A] text-xs">Sin fotografía</span>
                 </div>
+                <%
+                  etiqueta_colors = {
+                    "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
+                    "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
+                    "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
+                    "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
+                  }
+                  etiqueta_textos = {
+                    "en_venta" => "EN VENTA",
+                    "reservado" => "RESERVADO",
+                    "vendido" => "VENDIDO",
+                    "en_restauracion" => "EN RESTAURACIÓN"
+                  }
+                %>
+                <div class="absolute top-0 left-0 w-full <%= etiqueta_colors[producto.etiqueta] %> text-white text-[10px] font-bold text-center py-0.5">
+                  <%= etiqueta_textos[producto.etiqueta] %>
+                </div>
               <% end %>
             </div>
+            <% if producto.codigo.present? %>
+              <div class="flex justify-end px-2 py-1">
+                <span class="text-xs font-bold text-[#6B5744] bg-[#F5ECD7] px-2 py-0.5 rounded border border-[#E8E0D4]">
+                  <%= producto.codigo %>
+                </span>
+              </div>
+            <% end %>
             <div class="p-4">
               <h2 class="font-semibold text-[#2C1810] truncate"><%= producto.nombre %></h2>
               <p class="text-lg font-bold text-[#B8860B] mt-1"><%= formato_precio(producto.precio_venta) %></p>

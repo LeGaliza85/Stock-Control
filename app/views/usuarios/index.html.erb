@@ -1,0 +1,72 @@
+<% usr = @current_user || (session[:user_id] ? User.find_by(id: session[:user_id]) : nil) %>
+<div class="w-full max-w-4xl mx-auto">
+  <div class="mb-6">
+    <a href="/productos" class="inline-flex items-center gap-1 text-[#B8860B] hover:text-[#9A7209] text-sm font-medium transition-all duration-200">
+      Volver al inventario
+    </a>
+  </div>
+
+  <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Usuarios</h1>
+      <a href="/usuarios/new" class="inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200">
+        Nuevo usuario
+      </a>
+    </div>
+
+    <div class="space-y-3">
+      <% @usuarios.each do |usuario| %>
+        <div class="flex items-center justify-between p-4 rounded-lg border-2 <%= usr && usr.id == usuario.id ? 'border-[#B8860B] bg-[#F5ECD7]/20' : 'border-[#E8E0D4]' %> transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold <%= usuario.rol == 'admin' ? 'bg-[#B8860B]' : 'bg-[#6B5744]' %>">
+              <%= usuario.nombre[0].upcase %>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-[#2C1810]"><%= usuario.nombre %></span>
+                <% if usr && usr.id == usuario.id %>
+                  <span class="text-xs px-2 py-0.5 rounded bg-[#B8860B] text-white">Sesión actual</span>
+                <% end %>
+              </div>
+              <span class="text-xs text-[#9C8B7A]"><%= usuario.rol.capitalize %></span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <% if usr && usr.id != usuario.id %>
+              <% if usuario.rol == 'visitante' %>
+                <form action="/usuarios/switch" method="post">
+                  <input type="hidden" name="id" value="<%= usuario.id %>">
+                  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                  <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-[#B8860B] px-4 py-2 text-sm font-medium text-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-all duration-200 cursor-pointer">
+                    Cambiar sesión
+                  </button>
+                </form>
+              <% else %>
+                <button type="button" data-user-id="<%= usuario.id %>" data-user-name="<%= usuario.nombre %>" class="switch-user-btn inline-flex items-center gap-2 rounded-lg border border-[#B8860B] px-4 py-2 text-sm font-medium text-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-all duration-200 cursor-pointer">
+                  Cambiar sesión
+                </button>
+              <% end %>
+            <% end %>
+
+            <% unless usuario.visitante? %>
+              <a href="/usuarios/<%= usuario.id %>/edit" class="inline-flex items-center gap-1 rounded-lg border border-[#6B5744] px-3 py-2 text-sm font-medium text-[#6B5744] hover:bg-[#6B5744] hover:text-white transition-all duration-200">
+                Editar
+              </a>
+            <% end %>
+
+            <% unless usuario.email_address == "admin@stockcontrol.com" || usuario.visitante? %>
+              <form action="/usuarios/<%= usuario.id %>" method="post" style="display:inline">
+                <input type="hidden" name="_method" value="delete">
+                <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                <button type="submit" onclick="return confirm('¿Estás seguro de eliminar a <%= usuario.nombre %>?')" class="inline-flex items-center gap-1 rounded-lg border border-[#A63D2F] px-3 py-2 text-sm font-medium text-[#A63D2F] hover:bg-[#A63D2F] hover:text-white transition-all duration-200">
+                  Eliminar
+                </button>
+              </form>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

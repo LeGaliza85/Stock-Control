@@ -1,0 +1,45 @@
+<div class="w-full max-w-md mx-auto">
+  <div class="mb-6">
+    <%= link_to gestionar_usuarios_path, class: "inline-flex items-center gap-1 text-[#B8860B] hover:text-[#9A7209] text-sm font-medium transition-all duration-200" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      Volver a usuarios
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8">
+    <h1 class="text-2xl font-bold text-[#2C1810] mb-6" style="font-family: 'Playfair Display', serif;">Editar usuario</h1>
+
+    <% if @usuario.errors.any? %>
+      <div class="mb-4 p-3 rounded-lg text-sm bg-[#F4DCDC] text-[#A63D2F] border border-[#E0B8B8]">
+        <ul class="list-disc list-inside">
+          <% @usuario.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%= form_with model: @usuario, url: usuario_path(@usuario), method: :patch, local: true do |f| %>
+      <div class="space-y-4">
+        <div>
+          <%= f.label :nombre, "Nombre del usuario", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.text_field :nombre, required: true, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        </div>
+
+        <div>
+          <%= f.label :password, "Nueva contraseña (dejar en blanco para mantener la actual)", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.password_field :password, autocomplete: "new-password", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, "Confirmar nueva contraseña", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        </div>
+
+        <div class="pt-4">
+          <%= f.submit "Guardar cambios", class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8860B] cursor-pointer transition-all duration-200" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

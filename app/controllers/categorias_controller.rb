@@ -35,10 +35,16 @@ class CategoriasController < ApplicationController
 
   def destroy
     if @categoria.productos.any?
-      redirect_to categorias_path, alert: "No se puede eliminar esta categoría porque tiene productos asociados."
+      respond_to do |format|
+        format.html { redirect_to categorias_path, alert: "No se puede eliminar esta categoría porque tiene productos asociados." }
+        format.json { render json: { success: false, error: "No se puede eliminar esta categoría porque tiene productos asociados." }, status: :unprocessable_entity }
+      end
     else
       @categoria.destroy
-      redirect_to categorias_path, notice: "Categoría eliminada exitosamente."
+      respond_to do |format|
+        format.html { redirect_to categorias_path, notice: "Categoría eliminada exitosamente." }
+        format.json { render json: { success: true, redirect: categorias_path } }
+      end
     end
   end
 

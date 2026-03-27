@@ -1,4 +1,6 @@
 class ImageAnalysisController < ApplicationController
+  before_action :require_not_visitante, only: [:analyze, :update_config]
+
   def analyze
     image_data = params[:image_data]
 
@@ -30,12 +32,20 @@ class ImageAnalysisController < ApplicationController
   end
 
   def update_config
-    user_params = params.permit(:ia_service, :moondream_mode)
+    user_params = params.permit(:ia_service, :gemini_model)
 
     if current_user.update(user_params)
       redirect_to config_ia_path, notice: "Configuración guardada correctamente."
     else
       redirect_to config_ia_path, alert: "Error: #{current_user.errors.full_messages.join(', ')}"
+    end
+  end
+
+  private
+
+  def require_not_visitante
+    if current_user.visitante?
+      redirect_to productos_path, alert: "Los visitantes no pueden usar esta función"
     end
   end
 end
