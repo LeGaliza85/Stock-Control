@@ -35,6 +35,7 @@
           <div class="hidden md:flex items-center gap-3">
             <a href="<%= productos_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Productos</a>
             <a href="<%= categorias_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Categorías</a>
+            <a href="<%= config_ia_path %>" style="color: #E8E0D4; text-decoration: none; font-size: 14px;">Configuración IA</a>
           </div>
 
           <%# User menu on the right %>
@@ -123,6 +124,9 @@
                 <% if current_user.rol != 'visitante' %>
                   <div style="border-top:1px solid #3D2E28;"></div>
                   <a href="<%= new_usuario_path %>" style="display:block;padding:8px 10px;color:#B8860B;text-decoration:none;font-size:12px;">+ Nuevo usuario</a>
+                  <% if current_user.rol == 'admin' %>
+                    <a href="<%= config_ia_path %>" style="display:block;padding:8px 10px;color:#B8860B;text-decoration:none;font-size:12px;">Configuración IA</a>
+                  <% end %>
                 <% end %>
               </div>
             </div>
