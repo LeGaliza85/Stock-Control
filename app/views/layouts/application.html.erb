@@ -7,100 +7,17 @@
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
-</head>
+< /head>
 <body class="min-h-screen" style="background-color: var(--bg-cream); color: var(--text-primary); font-family: 'DM Sans', sans-serif;">
-  <!-- Cabecera con logo, centro y menú principal a la derecha -->
-  <nav class="sticky top-0 z-50 shadow-lg" style="background-color: var(--navbar-bg);">
-    <div class="container mx-auto px-4 py-3" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-      <!-- Logo a la izquierda -->
-      <div style="display:flex; align-items:center; gap:8px;">
-        <%= link_to root_path do %>
-          <%= image_tag "logo.webp", alt: "StockControl", class: "w-8 h-8" %>
-        <% end %>
-      </div>
-
-      <!-- Centro: Productos y Categorías -->
-      <div style="flex:1; display:flex; justify-content:center; gap:28px;">
-        <a href="<%= productos_path %>" style="color:#E8E0D4; text-decoration:none; font-size:14px;">Productos</a>
-        <a href="<%= categorias_path %>" style="color:#E8E0D4; text-decoration:none; font-size:14px;">Categorías</a>
-      </div>
-
-      <!-- Derecha: Botón de Menu Principal y nombre de usuario (sin avatar) -->
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button id="headerMainBtn" onclick="toggleHeaderMainMenu(event)" style="background: transparent; border:1px solid #E8E0D4; color:#E8E0D4; padding:6px 12px; border-radius:6px; cursor:pointer;">Menu</button>
-    <div id="headerUsername" style="padding:6px 12px; border-radius:6px; border:1px solid #E8E0D4; background:transparent; color:var(--accent); font-weight:600; display:inline-block; cursor:pointer;" onclick="toggleDesktopUserMenu(event)">
-      <%= current_user.nombre %>
-    </div>
-        <div id="desktopUserDropdown" class="hidden" style="position:absolute; right:8px; top:56px; background:#2A1E1A; border:1px solid #3D2E28; border-radius:6px; padding:8px 0; min-width:240px;">
-          <div style="padding:6px 12px; font-size:11px; color:#9C8B7A; border-bottom:1px solid #3D2E28;">Cambiar a:</div>
-          <% User.order(:nombre).each do |u| %>
-            <% if u.id != current_user.id %>
-              <% if u.rol == 'visitante' %>
-                <form action="<%= switch_usuarios_path(id: u.id) %>" method="post" style="margin:0;">
-                  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                  <button type="submit" style="display:block;width:100%;padding:8px 12px;background:transparent;border:none;color:#E8E0D4;text-align:left;"> <%= u.nombre %> </button>
-                </form>
-              <% else %>
-                <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" class="switch-user-btn" style="display:block;width:100%;padding:8px 12px;background:transparent;border:none;color:#E8E0D4;text-align:left;"> <%= u.nombre %> </button>
-              <% end %>
-            <% end %>
-          <% end %>
-          <div style="border-top:1px solid #3D2E28; margin:6px 0"></div>
-          <% if current_user.rol != 'visitante' %>
-            <a href="<%= new_usuario_path %>" style="display:block;padding:8px 12px;color:#B8860B;text-decoration:none;font-size:12px;">+ Nuevo usuario</a>
-            <% if current_user.rol == 'admin' %>
-              <a href="<%= gestionar_usuarios_path %>" data-turbo="false" style="display:block;padding:8px 12px;color:#E8E0D4;text-decoration:none;font-size:12px;">Gestionar usuarios</a>
-              <a href="<%= config_ia_path %>" data-turbo="false" style="display:block;padding:8px 12px;color:#B8860B;text-decoration:none;font-size:12px;">Configuración IA</a>
-            <% end %>
-          <% end %>
-          <div style="border-top:1px solid #3D2E28; margin:6px 0"></div>
-          <form action="<%= session_path %>" method="post" style="margin:0;">
-            <input type="hidden" name="_method" value="delete">
-            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-            <button type="submit" style="display:block;width:100%;padding:8px 12px;background:transparent;border:none;color:var(--text-muted);text-align:left;">Salir</button>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Dropdown del header para Menu (Productos, Categorías, IA) -->
-    <div id="headerMainMenuDropdown" class="hidden" style="position:absolute; right:20px; top:56px; background:#2A1E1A; border:1px solid #3D2E28; border-radius:6px; min-width:180px; padding:8px;">
-      <a href="<%= productos_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Productos</a>
-      <a href="<%= categorias_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Categorías</a>
-      <% if current_user.rol == 'admin' %>
-      <a href="<%= config_ia_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Configuración IA</a>
+  <header style="border-bottom:1px solid #ddd; padding:12px 16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <%= link_to root_path do %>
+        <%= image_tag "logo.webp", alt: "StockControl", class: "w-8 h-8" %>
       <% end %>
     </div>
-  </nav>
-
-  <main class="container mx-auto px-4 py-8">
+  </header>
+  <main class="container mx-auto px-4 py-6">
     <%= yield %>
   </main>
-
-  <script>
-    function toggleHeaderMainMenu(e) {
-      e.preventDefault();
-      var el = document.getElementById('headerMainMenuDropdown');
-      if (el) el.classList.toggle('hidden');
-    }
-    function toggleDesktopUserMenu(e) {
-      e.preventDefault();
-      var el = document.getElementById('desktopUserDropdown');
-      if (el) el.classList.toggle('hidden');
-    }
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(ev) {
-      var mh = document.getElementById('headerMainMenuDropdown');
-      var btn = document.getElementById('headerMainBtn');
-      if (mh && !mh.contains(ev.target) && !btn.contains(ev.target)) {
-        mh.classList.add('hidden');
-      }
-      var du = document.getElementById('desktopUserDropdown');
-      var hu = document.getElementById('headerUsername');
-      if (du && !du.contains(ev.target) && hu && ev.target !== hu) {
-        du.classList.add('hidden');
-      }
-    });
-  </script>
 </body>
 </html>
