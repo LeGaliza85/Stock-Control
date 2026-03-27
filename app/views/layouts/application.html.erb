@@ -9,21 +9,79 @@
   <%= javascript_importmap_tags %>
 </head>
 <body class="min-h-screen" style="background-color: var(--bg-cream); color: var(--text-primary); font-family: 'DM Sans', sans-serif;">
-  <!-- Barra mínima: Logo + Hamburguesa (sin avatar) -->
+  <!-- Cabecera estructurada: centro con Productos/Categorías, y menú principal derecho, usuario entre centro y hamburguesa -->
   <nav class="sticky top-0 z-50 shadow-lg" style="background-color: var(--navbar-bg);">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-      <%= link_to root_path, class: "hover:opacity-80 transition-opacity flex gap-2" do %>
-        <%= image_tag "logo.webp", alt: "StockControl", class: "w-8 h-8" %>
-        <span style="font-family: 'Playfair Display', serif; color: var(--accent);" class="text-xl font-bold tracking-tight">StockControl</span>
-      <% end %>
+    <div class="container mx-auto px-4 py-3" style="display:flex; align-items:center; gap:12px; justify-content: space-between; position: relative;">
+      <!-- Lado izquierdo: Logo -->
+      <div style="display:flex; align-items:center; gap:8px;">
+        <%= link_to root_path do %>
+          <img src="/logo.webp" alt="StockControl" style="width:32px; height:32px;">
+        <% end %>
+      </div>
 
-      <!-- Hamburguesa para móvil -->
-      <button class="md:hidden" id="mobileMenuBtn" aria-label="Open menu">☰</button>
+      <!-- Centro: Productos y Categorías -->
+      <div class="center-nav" style="flex:1; display:flex; justify-content:center; gap:24px;">
+        <a href="<%= productos_path %>" style="color:#E8E0D4; text-decoration:none; font-size:14px;">Productos</a>
+        <a href="<%= categorias_path %>" style="color:#E8E0D4; text-decoration:none; font-size:14px;">Categorías</a>
+      </div>
+
+      <!-- Derecho: Botones de IA y de usuario (entre centro y hamburger) -->
+      <div class="right-nav" style="display:flex; align-items:center; gap:8px;">
+        <button id="desktopMainMenuBtn" onclick="toggleHeaderMainMenu(event)" style="background: transparent; border:1px solid #E8E0D4; color:#E8E0D4; padding:6px 10px; border-radius:6px; cursor:pointer; display:none;">
+          Menu
+        </button>
+        <div id="desktopUserName" style="padding:6px 12px; background:transparent; color:var(--accent); font-weight:600; border-radius:6px; display:none; border:1px solid #E8E0D4;">
+          <%= current_user.nombre %>
+        </div>
+
+        <!-- Hamburger para móvil -->
+        <button class="md:hidden" id="mobileMenuBtn" aria-label="Open menu">☰</button>
+      </div>
+    </div>
+
+    <!-- Dropdowns (ocultos por defecto) -->
+    <div id="headerMainMenuDropdown" class="hidden" style="position:absolute; right:8px; top:56px; background:#2A1E1A; border:1px solid #3D2E28; border-radius:6px; padding:8px; min-width:180px;">
+      <a href="<%= productos_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Productos</a>
+      <a href="<%= categorias_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Categorías</a>
+      <% if current_user.rol == 'admin' %>
+      <a href="<%= config_ia_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Configuración IA</a>
+      <% end %>
+    </div>
+
+    <div id="desktopUserDropdown" class="hidden" style="position:absolute; right:8px; top:56px; background:#2A1E1A; border:1px solid #3D2E28; border-radius:6px; padding:8px 0; min-width:180px;">
+      <div style="padding:6px 12px; font-size:11px; color:#9C8B7A; border-bottom:1px solid #3D2E28;">Cambiar a:</div>
+      <% User.order(:nombre).each do |u| %>
+        <% if u.id != current_user.id %>
+          <% if u.rol == 'visitante' %>
+            <form action="<%= switch_usuarios_path(id: u.id) %>" method="post" style="margin:0;">
+              <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+              <button type="submit" style="display:block; width:100%; padding:8px 12px; background:transparent; border:none; color:#E8E0D4; text-align:left;"> <%= u.nombre %> </button>
+            </form>
+          <% else %>
+            <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" class="switch-user-btn" style="display:block; width:100%; padding:8px 12px; background:transparent; border:none; color:#E8E0D4; text-align:left;"> <%= u.nombre %> </button>
+          <% end %>
+        <% end %>
+      <% end %>
+      <div style="border-top:1px solid #3D2E28; margin-top:6px;"></div>
+      <a href="<%= session_path %>" data-method="delete" class="block" style="padding:8px 12px; color:#E8E0D4; text-decoration:none;">Salir</a>
     </div>
   </nav>
 
   <main class="container mx-auto px-4 py-8">
     <%= yield %>
   </main>
+
+  <script>
+    function toggleHeaderMainMenu(e) {
+      var el = document.getElementById('headerMainMenuDropdown');
+      if (!el) return;
+      el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+    function toggleDesktopUserMenu(e) {
+      var el = document.getElementById('desktopUserDropdown');
+      if (!el) return;
+      el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+  </script>
 </body>
 </html>
