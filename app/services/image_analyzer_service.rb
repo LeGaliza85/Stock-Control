@@ -9,9 +9,9 @@ class ImageAnalyzerService
   }.freeze
 
   OPENROUTER_MODELS = [
-    "google/gemini-3.1-flash-lite-preview",
-    "google/gemini-2.5-flash-lite",
-    "google/gemini-2.0-flash-lite"
+    "google/gemini-2.5-flash",
+    "google/gemini-1.5-flash-8k",
+    "google/gemini-pro-vision"
   ].freeze
 
   MOONDREAM_CLOUD_URL = "https://api.moondream.ai".freeze
@@ -42,6 +42,120 @@ class ImageAnalyzerService
       { id: "gemini", name: "Google Gemini", free: true, description: "Selección de modelos Gemini" },
       { id: "openrouter", name: "OpenRouter (Gemini)", free: true, description: "Gemini a través de OpenRouter con fallback automático" }
     ]
+  end
+
+  def analize_para_busqueda(image_data)
+    case @ia_service
+    when "gemini"
+      analyze_para_buscar_gemini(image_data)
+    when "openrouter"
+      analyze_para_buscar_openrouter(image_data)
+    end
+  rescue => e
+    { error: "Error al analizar imagen: #{e.message}" }
+  end
+
+  def analyze_para_buscar_gemini(image_data)
+    api_key = ENV["GEMINI_API_KEY"]
+    return { error: "API key no configurada" } if api_key.nil? || api_key.empty?
+
+    base64_image = prepare_image(image_data)
+
+    prompt = <<~PROMPT
+      Analiza esta imagen y describe el producto mostrado de forma detallada y técnica para poder compararlo con otros productos.
+      Sé muy específico sobre: forma, tamaño, materiales (madera, metal, plástico, etc.), colores exactos, texturas, marcas visibles, grabados, estilo, época probable, estado de conservación, y cualquier detalle único.
+      
+      IMPORTANTE para tipo_producto: Debes identificar qué tipo específico de objeto es. Ejemplos: "pinza de madera para ropa", "reloj de pulsera", "lámpara de mesa", "jarra de cerámica", "cromo de fútbol", "botella de vidrio", "cuchillo antiguo", etc. NUNCA respondas "genérico" - siempre busca un nombre específico y descriptivo.
+      
+      Responde SOLO en JSON con este formato exacto:
+      {
+        "descripcion": "descripción técnica y detallada del producto",
+        "tipo_producto": "tipo específico y descriptivo del objeto",
+        "palabras_clave_principales": ["palabra1", "palabra2", "palabra3", "palabra4", "palabra5"]
+      }
+    PROMPT
+
+    uri = URI("#{GEMINI_URL}/#{@gemini_model}:generateContent?key=#{api_key}")
+    request = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
+    request.body = {
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: detect_mime_type(image_data), data: base64_image } }
+        ]
+      }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.2
+      }
+    }.to_json
+
+    response = make_request(uri, request)
+    text = response.dig("candidates", 0, "content", "parts", 0, "text")
+    return { error: "No se recibió respuesta" } unless text
+
+    json_match = text.match(/\{.*\}/m)
+    return { error: "Respuesta inválida" } unless json_match
+
+    parsed = JSON.parse(json_match[0])
+    {
+      "descripcion" => parsed["descripcion"] || "",
+      "tipo_producto" => parsed["tipo_producto"] || "",
+      "palabras_clave" => parsed["palabras_clave_principales"] || parsed["palabras_clave"] || []
+    }
+  rescue => e
+    { error: "Error: #{e.message}" }
+  end
+
+  def analyze_para_buscar_openrouter(image_data)
+    api_key = ENV["OPENROUTER_API_KEY"]
+    return { error: "API key no configurada" } if api_key.nil? || api_key.empty?
+
+    base64_image = prepare_image(image_data)
+
+    prompt = "Analiza esta imagen y describe el producto de forma técnica y detallada para compararlo con otros productos. Sé específico sobre: forma, materiales (madera, metal, plástico, etc.), colores, texturas, marcas visibles, estilo, época probable. IMPORTANTE para tipo_producto: Debes identificar qué tipo específico de objeto es. Ejemplos: \"pinza de madera para ropa\", \"reloj de pulsera\", \"lámpara de mesa\", etc. NUNCA respondas \"genérico\". Responde SOLO en JSON: {\"descripcion\":\"...\",\"tipo_producto\":\"...\",\"palabras_clave_principales\":[\"...\"]}"
+
+    uri = URI(OPENROUTER_URL)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 30
+    http.read_timeout = 60
+
+    request = Net::HTTP::Post.new(uri)
+    request["Content-Type"] = "application/json"
+    request["Authorization"] = "Bearer #{api_key}"
+    request.body = {
+      model: "google/gemini-2.5-flash",
+      max_tokens: 500,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: "data:image/jpeg;base64,#{base64_image}" } }
+        ]
+      }],
+      stream: false
+    }.to_json
+
+    response = http.request(request)
+    return { error: "Error de API: #{response.code}" } unless response.is_a?(Net::HTTPSuccess)
+
+    parsed = JSON.parse(response.body)
+    choices = parsed["choices"]
+    return { error: "Sin respuesta" } unless choices && choices.any?
+
+    content = choices[0]["message"]["content"]
+    json_match = content.match(/\{.*\}/m)
+    return { error: "Respuesta inválida" } unless json_match
+
+    parsed_result = JSON.parse(json_match[0])
+    {
+      "descripcion" => parsed_result["descripcion"] || "",
+      "tipo_producto" => parsed_result["tipo_producto"] || "",
+      "palabras_clave" => parsed_result["palabras_clave_principales"] || parsed_result["palabras_clave"] || []
+    }
+  rescue => e
+    { error: "Error: #{e.message}" }
   end
 
   private
@@ -201,7 +315,7 @@ class ImageAnalyzerService
         end
 
         # Si es error 429 (rate limit) o 402 (no créditos), intentar siguiente modelo
-        if [429, 402, 400, 503].include?(response.code.to_i)
+        if [ 429, 402, 400, 503 ].include?(response.code.to_i)
           next
         end
 
@@ -353,5 +467,77 @@ class ImageAnalyzerService
     }
   rescue JSON::ParserError => e
     { error: "Error al procesar respuesta de Moondream: #{e.message}", confianza: 0 }
+  end
+
+  CLIP_URL = "https://openrouter.ai/api/v1/embeddings".freeze
+  EMBEDDING_MODEL = "nvidia/llama-nemotron-embed-vl-1b-v2:free".freeze
+
+  public
+
+  def get_embedding_from_image(image_data)
+    base64_image = prepare_image(image_data)
+    return nil if base64_image.nil?
+
+    request_body = {
+      model: EMBEDDING_MODEL,
+      input: [
+        {
+          content: [
+            { type: "image_url", image_url: { url: "data:image/jpeg;base64,#{base64_image}" } }
+          ]
+        }
+      ],
+      encoding_format: "float"
+    }
+
+    make_embedding_request(request_body)
+  rescue => e
+    Rails.logger.error "Error getting CLIP embedding: #{e.message}"
+    nil
+  end
+
+  def get_embedding_from_text(text)
+    return nil if text.blank?
+
+    request_body = {
+      model: EMBEDDING_MODEL,
+      input: [text],
+      encoding_format: "float"
+    }
+
+    make_embedding_request(request_body)
+  rescue => e
+    Rails.logger.error "Error getting text embedding: #{e.message}"
+    nil
+  end
+
+  private
+
+  def make_embedding_request(request_body)
+    api_key = ENV["OPENROUTER_API_KEY"]
+    return nil if api_key.nil? || api_key.empty?
+
+    uri = URI(CLIP_URL)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 30
+    http.read_timeout = 60
+
+    request = Net::HTTP::Post.new(uri)
+    request["Content-Type"] = "application/json"
+    request["Authorization"] = "Bearer #{api_key}"
+    request.body = request_body.to_json
+
+    response = http.request(request)
+    unless response.is_a?(Net::HTTPSuccess)
+      Rails.logger.error "Embedding API error: #{response.code} - #{response.body}"
+      return nil
+    end
+
+    parsed = JSON.parse(response.body)
+    embedding = parsed.dig("data", 0, "embedding")
+    return nil unless embedding
+
+    embedding.to_json
   end
 end

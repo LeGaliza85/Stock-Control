@@ -17,7 +17,7 @@
     <div class="mb-6 p-3 bg-[#F5ECD7] rounded-lg border border-[#E8E0D4]">
       <div class="flex items-center gap-2">
         <span class="text-sm text-[#9C8B7A]">Código del producto:</span>
-        <span class="text-sm font-bold text-[#2C1810]"><%= @producto.codigo %></span>
+        <span class="text-sm font-bold text-[#2C1810]"><%= formato_codigo(@producto.codigo) %></span>
       </div>
     </div>
   <% end %>
@@ -85,7 +85,7 @@
     <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Fotografías</h2>
 
     <div class="flex flex-wrap gap-3 mb-3">
-      <button type="button" id="btnTomarFoto" onclick="document.getElementById('cameraInput').click()"
+      <button type="button" id="btnTomarFoto" data-action="click->photo-preview#openCamera"
         class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;" onmouseover="this.style.backgroundColor='#9A7209'" onmouseout="this.style.backgroundColor='#B8860B'">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
@@ -93,7 +93,9 @@
         </svg>
         Tomar foto
       </button>
-      <input type="file" id="cameraInput" name="producto[fotos][]" accept="image/*" capture="environment" multiple class="hidden" data-action="change->photo-preview#preview">
+      <div id="cameraInputContainer" class="hidden">
+        <input type="file" id="cameraInput" name="producto[fotos][]" accept="image/*" capture="environment" multiple data-action="change->photo-preview#preview">
+      </div>
 
       <button type="button" onclick="document.getElementById('fotosInput').click()"
         class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border border-[#E8E0D4] text-[#6B5744] hover:bg-[#F5ECD7]">
@@ -145,13 +147,13 @@
             </div>
           <% end %>
         </div>
-        <input type="hidden" name="producto[fotos_a_eliminar][]" id="fotos_a_eliminar" value="">
       </div>
     <% end %>
+    <input type="hidden" name="producto[fotos_a_eliminar]" id="fotos_a_eliminar" value="">
   </div>
 
   <div>
-    <%= f.submit class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8860B] cursor-pointer transition-all duration-200" %>
+    <%= f.submit "Guardar", type: "submit", class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8860B] cursor-pointer transition-all duration-200", onclick: "console.log('Submit clicked, fotos_a_eliminar:', document.getElementById('fotos_a_eliminar').value);" %>
   </div>
 <% end %>
 
@@ -167,6 +169,10 @@
           </svg>
         </button>
       </div>
+
+      <input type="hidden" id="ia_nombre" value="">
+      <input type="hidden" id="ia_palabras_clave" value="">
+      <input type="hidden" id="ia_tipo_producto" value="">
 
       <!-- Preview de imagen -->
       <div id="iaImagePreview" class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center" style="min-height: 150px;">
@@ -281,30 +287,250 @@
 
 <script>
 function eliminarFoto(button, fotoId) {
-  if (confirm('¿Estás seguro de que quieres eliminar esta foto?')) {
-    var container = button.closest('.foto-item');
-    var input = document.getElementById('fotos_a_eliminar');
-    var currentValues = input.value ? input.value.split(',') : [];
-    currentValues.push(fotoId);
-    input.value = currentValues.join(',');
-    
-    container.classList.add('border-red-500', 'border-2');
-    container.querySelector('.btn-eliminar').classList.add('hidden');
-    container.querySelector('.btn-cancelar').classList.remove('hidden');
-    container.querySelector('.foto-marcada').classList.remove('hidden');
+  var container = button.closest('.foto-item');
+  var input = document.getElementById('fotos_a_eliminar');
+  
+  // Agregar el ID a la lista
+  var currentValues = [];
+  if (input.value && input.value.trim() !== '') {
+    currentValues = input.value.split(',');
   }
+  
+  // Evitar duplicados
+  if (currentValues.indexOf(String(fotoId)) === -1) {
+    currentValues.push(String(fotoId));
+  }
+  
+  input.value = currentValues.join(',');
+  
+  console.log('Marca eliminar:', fotoId, '=>', input.value);
+  
+  container.classList.add('border-red-500', 'border-2');
+  container.querySelector('.btn-eliminar').classList.add('hidden');
+  container.querySelector('.btn-cancelar').classList.remove('hidden');
+  container.querySelector('.foto-marcada').classList.remove('hidden');
 }
 
 function cancelarEliminar(button, fotoId) {
   var container = button.closest('.foto-item');
   var input = document.getElementById('fotos_a_eliminar');
-  var currentValues = input.value ? input.value.split(',') : [];
-  var newValues = currentValues.filter(function(id) { return id !== fotoId; });
-  input.value = newValues.join(',');
+  
+  var currentValues = [];
+  if (input.value && input.value.trim() !== '') {
+    currentValues = input.value.split(',');
+  }
+  
+  currentValues = currentValues.filter(function(id) { return id !== String(fotoId); });
+  input.value = currentValues.join(',');
+  
+  console.log('Desmarca eliminar:', fotoId, '=>', input.value);
   
   container.classList.remove('border-red-500', 'border-2');
   container.querySelector('.btn-eliminar').classList.remove('hidden');
   container.querySelector('.btn-cancelar').classList.add('hidden');
   container.querySelector('.foto-marcada').classList.add('hidden');
 }
+
+// Analizar fotos existentes con IA
+document.addEventListener('DOMContentLoaded', function() {
+  var btnAnalizarIA = document.getElementById('btnAnalizarIA');
+  var iaCameraInput = document.getElementById('iaCameraInput');
+  var fotosInput = document.getElementById('fotosInput');
+  var cameraInputContainer = document.getElementById('cameraInputContainer');
+  var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
+  
+  function getCameraInput() {
+    return cameraInputContainer ? cameraInputContainer.querySelector('input[type="file"]') : null;
+  }
+  
+  if (btnAnalizarIA) {
+    btnAnalizarIA.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Buscar foto existente en el preview
+      var previewImages = previewContainer ? previewContainer.querySelectorAll('img') : [];
+      
+      // Si hay fotos en el preview, usar la primera
+      if (previewImages.length > 0) {
+        var img = previewImages[0];
+        if (img.src) {
+          analizarImagenDesdeSrc(img.src);
+          return;
+        }
+      }
+      
+      // Si hay fotos en los inputs, usar la primera
+      var fotosFiles = fotosInput ? fotosInput.files : null;
+      if (fotosFiles && fotosFiles.length > 0) {
+        var file = fotosFiles[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          analizarImagenDesdeSrc(event.target.result);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+      
+      // Si hay fotos de cámara, usar la primera
+      var cameraInput = getCameraInput();
+      var cameraFiles = cameraInput ? cameraInput.files : null;
+      if (cameraFiles && cameraFiles.length > 0) {
+        var file = cameraFiles[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          analizarImagenDesdeSrc(event.target.result);
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+      
+      // Si no hay fotos, abrir la cámara
+      console.log('iaCameraInput:', iaCameraInput);
+      if (iaCameraInput) {
+        console.log('Clicking iaCameraInput');
+        iaCameraInput.click();
+      } else {
+        console.error('iaCameraInput no encontrado');
+      }
+    });
+  }
+  
+  // Manejar el input de cámara para análisis
+  if (iaCameraInput) {
+    iaCameraInput.addEventListener('change', function(e) {
+      if (e.target.files && e.target.files[0]) {
+        var file = e.target.files[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          analizarImagenDesdeSrc(event.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+  
+  function analizarImagenDesdeSrc(src) {
+    // Buscar el modal de IA o crearlo dinámicamente
+    var modal = document.getElementById('iaModalForm');
+    if (!modal) {
+      crearModalIA();
+      modal = document.getElementById('iaModalForm');
+    }
+    
+    var loading = document.getElementById('iaLoadingForm');
+    var results = document.getElementById('iaResultsForm');
+    var preview = document.getElementById('iaImagePreviewForm');
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    if (!modal || !loading || !results || !preview || !csrfToken) {
+      alert('Error: No se pudo inicializar el análisis');
+      return;
+    }
+    
+    // Mostrar modal
+    modal.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    results.classList.add('hidden');
+    
+    // Mostrar imagen
+    preview.innerHTML = '<img src="' + src + '" class="max-h-48 mx-auto rounded-lg">';
+    
+    // Enviar a la IA
+    fetch('/ia/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRF-Token': csrfToken
+      },
+      body: 'image_data=' + encodeURIComponent(src)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      loading.classList.add('hidden');
+      results.classList.remove('hidden');
+      
+      if (data.error) {
+        document.getElementById('iaErrorForm').textContent = data.error;
+        document.getElementById('iaErrorForm').classList.remove('hidden');
+        return;
+      }
+      
+      // Llenar los campos del formulario con los resultados
+      var nombreField = document.querySelector('input[name="producto[nombre]"]');
+      var descripcionField = document.querySelector('textarea[name="producto[descripcion]"]');
+      var estadoField = document.querySelector('select[name="producto[estado]"]');
+      var categoriaField = document.querySelector('select[name="producto[categoria_id]"]');
+      
+      if (data.descripcion && descripcionField) {
+        descripcionField.value = data.descripcion;
+      }
+      
+      if (data.tipo_producto && nombreField) {
+        // Generar nombre desde tipo_producto y palabras clave
+        var palabras = data.palabras_clave || [];
+        var nombre = data.tipo_producto;
+        if (palabras.length > 0) {
+          var relevantes = palabras.slice(0, 2).join(' - ');
+          nombre = nombre + ' - ' + relevantes;
+        }
+        if (nombre.length > 50) nombre = nombre.substring(0, 47) + '...';
+        nombreField.value = nombre;
+      }
+      
+      if (data.estado && estadoField) {
+        for (var i = 0; i < estadoField.options.length; i++) {
+          if (estadoField.options[i].value === data.estado) {
+            estadoField.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      
+      if (data.categoria_sugerida && categoriaField) {
+        for (var i = 0; i < categoriaField.options.length; i++) {
+          if (categoriaField.options[i].text.toLowerCase().includes(data.categoria_sugerida.toLowerCase())) {
+            categoriaField.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      
+      document.getElementById('iaErrorForm').classList.add('hidden');
+      alert('Análisis completado. Los campos han sido llenados.');
+      
+      // Cerrar modal
+      setTimeout(function() {
+        modal.classList.add('hidden');
+      }, 1000);
+    })
+    .catch(function(err) {
+      loading.classList.add('hidden');
+      document.getElementById('iaErrorForm').textContent = 'Error de red: ' + err.message;
+      document.getElementById('iaErrorForm').classList.remove('hidden');
+    });
+  }
+  
+  function crearModalIA() {
+    var modalHtml = `
+      <div id="iaModalForm" class="fixed inset-0 z-50 hidden" style="background: rgba(0,0,0,0.5);">
+        <div class="flex items-center justify-center min-h-screen p-4">
+          <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
+            <h3 class="text-xl font-bold text-[#2C1810] mb-4">Análisis con IA</h3>
+            <div id="iaImagePreviewForm" class="mb-4 flex justify-center"></div>
+            <div id="iaLoadingForm" class="text-center py-8">
+              <div class="inline-block w-12 h-12 border-4 border-[#7C3AED]/20 border-t-[#7C3AED] rounded-full animate-spin mb-4"></div>
+              <p class="text-[#6B5744]">Analizando imagen...</p>
+            </div>
+            <div id="iaResultsForm" class="hidden">
+              <p class="text-green-600 text-center">¡Análisis completado!</p>
+            </div>
+            <div id="iaErrorForm" class="hidden mt-4 p-3 bg-red-100 text-red-700 rounded-lg"></div>
+            <button type="button" onclick="document.getElementById('iaModalForm').classList.add('hidden')" class="mt-4 w-full py-2 bg-[#6B5744] text-white rounded-lg">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
+});
 </script>

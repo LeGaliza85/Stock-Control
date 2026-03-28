@@ -34,8 +34,8 @@
 
           <div class="flex items-center gap-2">
             <% if usr && usr.id != usuario.id %>
-              <% if usuario.rol == 'visitante' %>
-                <form action="/usuarios/switch" method="post">
+              <% if usuario.visitante? %>
+                <form action="/usuarios/switch" method="post" style="display:inline;">
                   <input type="hidden" name="id" value="<%= usuario.id %>">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-[#B8860B] px-4 py-2 text-sm font-medium text-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-all duration-200 cursor-pointer">

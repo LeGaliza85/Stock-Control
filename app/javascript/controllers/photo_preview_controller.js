@@ -4,9 +4,40 @@ export default class extends Controller {
   static targets = ["preview", "counter"];
 
   connect() {
-    console.log("hola");
+    console.log("photo-preview controller connected");
     this.selectedFiles = [];
     this._setupExistingFotos();
+  }
+
+  openCamera(event) {
+    event.preventDefault();
+    console.log('openCamera called');
+    
+    // Create a fresh input element each time
+    const container = document.getElementById('cameraInputContainer');
+    if (!container) {
+      console.error('Camera input container not found');
+      return;
+    }
+    
+    // Remove old input and create new one
+    container.innerHTML = '';
+    
+    const newInput = document.createElement('input');
+    newInput.type = 'file';
+    newInput.name = 'producto[fotos][]';
+    newInput.id = 'cameraInput';
+    newInput.accept = 'image/*';
+    newInput.setAttribute('capture', 'environment');
+    newInput.multiple = true;
+    newInput.className = 'hidden';
+    newInput.dataset.action = 'change->photo-preview#preview';
+    
+    container.appendChild(newInput);
+    
+    // Trigger click on the new input
+    newInput.click();
+    console.log('Camera input clicked');
   }
 
   _setupExistingFotos() {
@@ -32,54 +63,107 @@ export default class extends Controller {
 
   preview(event) {
     const container = this.previewTarget;
-    const files = event.target.files;
-    console.log(files);
+    const input = event.target;
+    const files = input.files;
+    const inputId = input.id;
+    console.log('Files selected:', files.length, 'Input ID:', inputId);
     if (!files.length) return;
 
+    // First add new files to selectedFiles
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/")) return;
       this.selectedFiles.push(file);
+      console.log('Added file:', file.name);
 
       const reader = new FileReader();
       reader.onload = (e) => {
+        console.log('FileReader loaded for:', file.name);
         const wrapper = document.createElement("div");
-        wrapper.className = "relative group";
+        wrapper.className = "relative group mb-2";
 
         const img = document.createElement("img");
         img.src = e.target.result;
-        img.className =
-          "w-20 h-20 object-cover rounded-lg border-2 border-[#B8860B]";
+        img.className = "w-20 h-20 object-cover rounded-lg border-2 border-[#B8860B]";
+        img.alt = file.name;
 
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.innerHTML = "&times;";
-        removeBtn.className =
-          "absolute -top-2 -right-2 w-5 h-5 rounded-full bg-[#A63D2F] text-white text-xs flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity";
-        removeBtn.onclick = () => {
-          wrapper.remove();
-          const idx = this.selectedFiles.indexOf(file);
-          if (idx > -1) this.selectedFiles.splice(idx, 1);
-          this._updateFileInput();
-          this._updateCounter();
+        removeBtn.className = "absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#A63D2F] text-white text-lg flex items-center justify-center cursor-pointer";
+        removeBtn.title = "Eliminar foto";
+        removeBtn.onclick = (e) => {
+          e.preventDefault();
+          if (confirm('¿Estás seguro de que quieres eliminar esta foto?')) {
+            wrapper.remove();
+            const idx = this.selectedFiles.indexOf(file);
+            if (idx > -1) this.selectedFiles.splice(idx, 1);
+            this._updateFileInputFromSelected(inputId);
+            this._updateCounter();
+          }
         };
 
         wrapper.appendChild(img);
         wrapper.appendChild(removeBtn);
         container.appendChild(wrapper);
+        console.log('Thumbnail added for:', file.name);
+      };
+      reader.onerror = (e) => {
+        console.error('FileReader error:', e);
       };
       reader.readAsDataURL(file);
     });
 
+    // Update the input with ALL accumulated files
+    this._updateFileInputFromSelected(inputId);
     this._updateCounter();
+    
+    // Reset input value to allow re-selecting camera
+    input.value = '';
+    console.log('Input value reset, total files:', this.selectedFiles.length);
   }
 
-  _updateFileInput() {
+  _updateFileInputFromFiles(files, inputId = null) {
+    const dt = new DataTransfer();
+    Array.from(files).forEach((f) => dt.items.add(f));
+    this._replaceInputFiles(dt.files, inputId);
+  }
+
+  _updateFileInputFromSelected(inputId = 'cameraInput') {
     const dt = new DataTransfer();
     this.selectedFiles.forEach((f) => dt.items.add(f));
-    const inputs = this.element.querySelectorAll("input[type=file]");
-    inputs.forEach((input) => {
-      input.files = dt.files;
-    });
+    // Use the specified input or cameraInput by default
+    this._replaceInputFiles(dt.files, inputId);
+  }
+
+  _replaceInputFiles(files, targetInputId = null) {
+    console.log('Replacing input files:', files.length, 'target:', targetInputId);
+    
+    // Only update one specific input, not all inputs
+    const input = targetInputId 
+      ? document.getElementById(targetInputId)
+      : this.element.querySelector("input[name='producto[fotos][]']");
+    
+    if (!input) {
+      console.error('Input not found');
+      return;
+    }
+
+    const newInput = document.createElement('input');
+    newInput.type = 'file';
+    newInput.name = input.name;
+    newInput.id = input.id;
+    newInput.accept = input.accept;
+    newInput.multiple = input.multiple;
+    newInput.className = input.className;
+    newInput.files = files;
+    
+    for (const attr of input.attributes) {
+      if (attr.name.startsWith('data-')) {
+        newInput.setAttribute(attr.name, attr.value);
+      }
+    }
+    
+    input.parentNode.replaceChild(newInput, input);
   }
 
   _updateCounter() {

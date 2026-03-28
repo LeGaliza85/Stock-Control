@@ -28,12 +28,22 @@
 
         <div>
           <%= f.label :password, "Contraseña", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-          <%= f.password_field :password, required: true, autocomplete: "new-password", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+          <div class="relative">
+            <%= f.password_field :password, required: true, autocomplete: "new-password", id: "user_password", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 pr-10" %>
+            <button type="button" onclick="toggleField('user_password', 'eye_password')" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;color:#9C8B7A">
+              <svg id="eye_password" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+          </div>
         </div>
 
         <div>
           <%= f.label :password_confirmation, "Confirmar contraseña", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-          <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+          <div class="relative">
+            <%= f.password_field :password_confirmation, required: true, autocomplete: "new-password", id: "user_password_confirmation", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 pr-10" %>
+            <button type="button" onclick="toggleField('user_password_confirmation', 'eye_password_confirm')" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;color:#9C8B7A">
+              <svg id="eye_password_confirm" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </button>
+          </div>
           <p id="password-match" class="text-xs mt-1 hidden"></p>
         </div>
 
@@ -46,6 +56,20 @@
 </div>
 
 <script>
+function toggleField(fieldId, eyeId) {
+  var field = document.getElementById(fieldId);
+  var eye = document.getElementById(eyeId);
+  if (!field || !eye) return;
+  
+  if (field.type === 'password') {
+    field.type = 'text';
+    eye.innerHTML = '<path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a10.05 10.05 0 011.908-3.164M9.713 6.088A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.05 10.05 0 01-1.313 3.087M9.713 6.088L4.58 3.36"/><path d="M3 3l18 18"/>';
+  } else {
+    field.type = 'password';
+    eye.innerHTML = '<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var password = document.querySelector('input[name="user[password]"]');
   var confirmation = document.querySelector('input[name="user[password_confirmation]"]');

@@ -29,7 +29,7 @@ namespace :productos do
 
     # Generar códigos para productos que no tienen
     Categoria.all.each do |categoria|
-      productos_sin_codigo = categoria.productos.where(codigo: [nil, ""]).order(:created_at)
+      productos_sin_codigo = categoria.productos.where(codigo: [ nil, "" ]).order(:created_at)
 
       productos_sin_codigo.each_with_index do |producto, index|
         codigo = "#{categoria.prefijo}#{index + 1}"
@@ -40,7 +40,64 @@ namespace :productos do
 
     puts "\n=== Resumen ==="
     puts "Categorías: #{Categoria.count}"
-    puts "Productos con código: #{Producto.where.not(codigo: [nil, ""]).count}"
+    puts "Productos con código: #{Producto.where.not(codigo: [ nil, "" ]).count}"
     puts "Total productos: #{Producto.count}"
+  end
+
+  desc "Generar embeddings para productos con fotos pero sin embedding"
+  task generar_embeddings: :environment do
+    puts "=== Generando embeddings para productos ==="
+
+    productos_sin_embedding = Producto
+      .joins(:fotos_attachments)
+      .where("embedding IS NULL OR embedding = ''")
+      .distinct
+
+    puts "Productos a procesar: #{productos_sin_embedding.count}"
+
+    if productos_sin_embedding.count.zero?
+      puts "No hay productos que necesiten embeddings."
+      return
+    end
+
+    productos_sin_embedding.each do |producto|
+      puts "Procesando ##{producto.id}: #{producto.nombre}..."
+
+      begin
+        producto.generar_embedding
+        if producto.embedding.present?
+          puts "  ✓ Embedding guardado (#{JSON.parse(producto.embedding).length} dimensiones)"
+        else
+          puts "  ✗ Error: no se pudo generar embedding"
+        end
+      rescue => e
+        puts "  ✗ Error: #{e.message}"
+      end
+
+      sleep 1.5
+    end
+
+    puts "\n=== Resumen ==="
+    productos_con = Producto.where("embedding IS NOT NULL AND embedding != ''").count
+    puts "Productos con embedding: #{productos_con}/#{Producto.count}"
+  end
+
+  desc "Ver estado de embeddings en la base de datos"
+  task verificar_embeddings: :environment do
+    total = Producto.count
+    con_fotos = Producto.joins(:fotos_attachments).distinct.count
+    con_embedding = Producto.where("embedding IS NOT NULL AND embedding != ''").count
+    sin_embedding = Producto.joins(:fotos_attachments).where("embedding IS NULL OR embedding = ''").distinct.count
+
+    puts "=== Estado de Embeddings ==="
+    puts "Total productos: #{total}"
+    puts "Productos con fotos: #{con_fotos}"
+    puts "Productos con embedding: #{con_embedding}"
+    puts "Productos sin embedding (tienen fotos): #{sin_embedding}"
+
+    if sin_embedding > 0
+      puts "\nPara generar embeddings, ejecuta:"
+      puts "  bin/rails productos:generar_embeddings"
+    end
   end
 end

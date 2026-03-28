@@ -1,5 +1,5 @@
 class ImageAnalysisController < ApplicationController
-  before_action :require_not_visitante, only: [:analyze, :update_config]
+  before_action :require_not_visitante, only: [ :analyze, :update_config ]
 
   def analyze
     image_data = params[:image_data]

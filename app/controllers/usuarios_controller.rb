@@ -1,42 +1,58 @@
 class UsuariosController < ApplicationController
-  skip_before_action :require_authentication, only: [:index, :new, :gestionar]
+  skip_before_action :require_authentication, only: [ :index, :new, :gestionar ]
   skip_before_action :verify_authenticity_token, only: [], raise: false
 
   def index
     redirect_to gestionar_usuarios_path
   end
 
+  # Switch to another user when a visitor provides an admin password
+  # For demonstration: usage via POST /usuarios/switch_user_with_password
+  def switch_user_with_password
+    return head :forbidden unless current_user&.rol == "visitante"
+    target_id = params[:target_user_id] || params[:user_id]
+    password = params[:password]
+    target_user = User.find_by(id: target_id)
+    if target_user && password.present? && target_user.authenticate(password)
+      terminate_session
+      start_new_session_for(target_user)
+      render json: { success: true }
+    else
+      render json: { success: false, error: "Contraseña incorrecta o usuario no encontrado" }, status: :unauthorized
+    end
+  end
+
   def gestionar
     @usuarios = User.order(:nombre)
     resume_session
     @current_user = Current.user || User.first
-    
+
     render "index"
   end
 
   def new
     session_id = cookies.signed[:session_id]
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless session_id
-    
+
     @session = Session.find_by(id: session_id)
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless @session
-    
+
     @current_user = @session.user
     return redirect_to(productos_path, alert: "No tienes permiso.") unless @current_user.admin?
-    
+
     @usuario = User.new
   end
 
   def edit
     session_id = cookies.signed[:session_id]
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless session_id
-    
+
     @session = Session.find_by(id: session_id)
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless @session
-    
+
     current_user = @session.user
     return redirect_to(gestionar_usuarios_path, alert: "No tienes permiso.") unless current_user && !current_user.visitante?
-    
+
     @usuario = User.find(params[:id])
     @current_user = current_user
   end
@@ -44,10 +60,10 @@ class UsuariosController < ApplicationController
   def create
     session_id = cookies.signed[:session_id]
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless session_id
-    
+
     @session = Session.find_by(id: session_id)
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless @session
-    
+
     current_user = @session.user
     return redirect_to(gestionar_usuarios_path, alert: "No tienes permiso.") unless current_user && !current_user.visitante?
 
@@ -66,16 +82,16 @@ class UsuariosController < ApplicationController
   def update
     session_id = cookies.signed[:session_id]
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless session_id
-    
+
     @session = Session.find_by(id: session_id)
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless @session
-    
+
     current_user = @session.user
     return redirect_to(gestionar_usuarios_path, alert: "No tienes permiso.") unless current_user && !current_user.visitante?
-    
+
     @current_user = current_user
     @usuario = User.find(params[:id])
-    
+
     if usuario_params[:password].blank?
       params[:user].delete(:password) if params[:user]
       params[:user].delete(:password_confirmation) if params[:user]
@@ -91,10 +107,10 @@ class UsuariosController < ApplicationController
   def destroy
     session_id = cookies.signed[:session_id]
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless session_id
-    
+
     @session = Session.find_by(id: session_id)
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless @session
-    
+
     current_user = @session.user
     return redirect_to(gestionar_usuarios_path, alert: "No tienes permiso.") unless current_user && !current_user.visitante?
 
@@ -120,10 +136,14 @@ class UsuariosController < ApplicationController
     terminate_session
     start_new_session_for(user)
 
-    respond_to do |format|
-      format.html { redirect_back fallback_location: productos_path, notice: "Sesión cambiada a #{user.nombre}." }
-      format.json { render json: { success: true, user: { id: user.id, nombre: user.nombre, rol: user.rol } } }
+    if request.format.json?
+      render json: { success: true, user: { id: user.id, nombre: user.nombre, rol: user.rol } }
+    else
+      redirect_back fallback_location: productos_path, notice: "Sesión cambiada a #{user.nombre}."
     end
+  rescue => e
+    Rails.logger.error "Error in switch: #{e.message}"
+    render json: { success: false, error: e.message }, status: :internal_server_error
   end
 
   def switch_to_admin
@@ -144,14 +164,14 @@ class UsuariosController < ApplicationController
   end
 
   def switch_with_password
-    unless params[:admin_password] == "Admin123"
-      render json: { success: false, error: "Contraseña incorrecta" }, status: :unauthorized
-      return
-    end
-
     user = User.find(params[:user_id])
     unless user
       render json: { success: false, error: "Usuario no encontrado" }, status: :not_found
+      return
+    end
+
+    unless user.authenticate(params[:password])
+      render json: { success: false, error: "Contraseña incorrecta" }, status: :unauthorized
       return
     end
 

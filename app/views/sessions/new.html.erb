@@ -23,11 +23,25 @@
         <%= form.label :password, "Contrasena", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
         <div class="relative">
           <input type="password" name="password" id="pass" required autocomplete="current-password" placeholder="Tu contrasena" maxlength="72" class="w-full rounded-lg border border-gray-300 pr-10 px-3 py-2" style="padding-right:2.5rem">
-          <button type="button" id="passBtn" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;color:#9C8B7A">
+          <button type="button" id="passBtn" onclick="togglePassword()" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;color:#9C8B7A">
             <svg id="passEye" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
           </button>
         </div>
       </div>
+
+<script>
+function togglePassword() {
+  var input = document.getElementById('pass');
+  var eye = document.getElementById('passEye');
+  if (input.type === 'password') {
+    input.type = 'text';
+    eye.innerHTML = '<path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a10.05 10.05 0 011.908-3.164M9.713 6.088A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.05 10.05 0 01-1.313 3.087M9.713 6.088L4.58 3.36"/><path d="M3 3l18 18"/>';
+  } else {
+    input.type = 'password';
+    eye.innerHTML = '<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+  }
+}
+</script>
 
       <div>
         <%= form.submit "Iniciar sesion", class: "w-full rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-colors", style: "background-color: var(--accent); color: #FAF7F2;", onmouseover: "this.style.backgroundColor='#9A7209'", onmouseout: "this.style.backgroundColor='#B8860B'" %>

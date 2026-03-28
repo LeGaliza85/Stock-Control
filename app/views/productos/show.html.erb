@@ -10,10 +10,10 @@
     <div class="mb-8" id="gallery" data-count="<%= @producto.fotos.count %>">
       <% fotos = @producto.fotos.to_a %>
 
-      <%# Imagen principal %>
+      <%# Imagen principal (clickable para zoom) %>
       <div class="relative rounded-xl overflow-hidden shadow-md bg-[#FAF7F2]" style="aspect-ratio:4/3">
         <% fotos.each_with_index do |foto, i| %>
-          <%= image_tag foto.variant(resize_to_limit: [800, 600]), class: "w-full h-full object-cover absolute inset-0 transition-opacity duration-300", style: (i == 0 ? "opacity:1" : "opacity:0"), data: { slide: i } %>
+          <%= image_tag foto.variant(resize_to_limit: [800, 600]), class: "w-full h-full object-cover absolute inset-0 transition-opacity duration-300 cursor-zoom-in", style: (i == 0 ? "opacity:1" : "opacity:0"), data: { slide: i, zoom_url: url_for(foto) }, onclick: "openLightbox(this)" %>
         <% end %>
         <%
           etiqueta_colors = {
@@ -48,7 +48,7 @@
       <% if fotos.size > 1 %>
         <div class="flex gap-2 mt-3 overflow-x-auto pb-1" id="galThumbs">
           <% fotos.each_with_index do |foto, i| %>
-            <button type="button" data-thumb="<%= i %>" class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all <%= i == 0 ? 'border-[#B8860B]' : 'border-transparent opacity-70 hover:opacity-100' %>">
+            <button type="button" data-thumb="<%= i %>" data-zoom-url="<%= url_for(foto) %>" onclick="openLightboxFromThumb(this)" class="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all <%= i == 0 ? 'border-[#B8860B]' : 'border-transparent opacity-70 hover:opacity-100' %>">
               <%= image_tag foto.variant(resize_to_limit: [100, 100]), class: "w-full h-full object-cover" %>
             </button>
           <% end %>
@@ -80,7 +80,7 @@
       <div class="flex items-center gap-2 mb-6">
         <span class="text-sm text-[#9C8B7A]">Código:</span>
         <span class="text-sm font-bold text-[#2C1810] bg-[#F5ECD7] px-2 py-0.5 rounded border border-[#E8E0D4]">
-          <%= @producto.codigo %>
+          <%= formato_codigo(@producto.codigo) %>
         </span>
       </div>
     <% end %>
@@ -136,10 +136,19 @@
           <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Fecha de creación</span>
           <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.created_at.strftime("%d/%m/%Y") %></p>
         </div>
-        <% if @producto.last_updated_by.present? %>
-          <div>
-            <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Última edición</span>
-            <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.last_updated_by.nombre %> (<%= @producto.updated_at.strftime("%d/%m/%Y") %>)</p>
+        <% if @producto.last_updated_by.present? || @producto.updated_at > @producto.created_at %>
+          <div class="flex items-center gap-2">
+            <div>
+              <span class="text-xs uppercase tracking-wider text-[#9C8B7A]">Última edición</span>
+              <p class="font-semibold text-[#2C1810] mt-1"><%= @producto.last_updated_by&.nombre || @producto.user&.nombre %> (<%= @producto.updated_at.strftime("%d/%m/%Y") %> <%= @producto.updated_at.strftime("a las %H:%M") %>)</p>
+            </div>
+            <% if @producto.historiales.any? %>
+              <button type="button" onclick="openHistorialModal()" class="ml-2 p-2 rounded-full bg-[#F5ECD7] hover:bg-[#E8DFC0] transition-colors" title="Ver historial de cambios">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#B8860B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            <% end %>
           </div>
         <% end %>
       <% end %>
@@ -162,4 +171,182 @@
       <% end %>
     <% end %>
   </div>
+</div>
+
+<script>
+(function() {
+  var gallery = document.getElementById('gallery');
+  if (!gallery) return;
+  
+  var count = parseInt(gallery.dataset.count);
+  if (count <= 1) return;
+  
+  var current = 0;
+  var slides = gallery.querySelectorAll('[data-slide]');
+  var thumbs = document.getElementById('galThumbs');
+  var counter = document.getElementById('galCounter');
+  var prevBtn = document.getElementById('galPrev');
+  var nextBtn = document.getElementById('galNext');
+  
+  function showSlide(index) {
+    current = index;
+    if (current < 0) current = count - 1;
+    if (current >= count) current = 0;
+    
+    slides.forEach(function(slide, i) {
+      slide.style.opacity = (i === current) ? '1' : '0';
+    });
+    
+    if (counter) {
+      counter.textContent = (current + 1) + ' / ' + count;
+    }
+    
+    if (thumbs) {
+      thumbs.querySelectorAll('button').forEach(function(btn, i) {
+        btn.classList.toggle('border-[#B8860B]', i === current);
+        btn.classList.toggle('opacity-70', i !== current);
+        btn.classList.toggle('opacity-100', i === current);
+        btn.classList.toggle('border-transparent', i !== current);
+      });
+    }
+  }
+  
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSlide(current - 1);
+    });
+  }
+  
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      showSlide(current + 1);
+    });
+  }
+  
+  if (thumbs) {
+    thumbs.querySelectorAll('button').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        showSlide(parseInt(btn.dataset.thumb));
+      });
+    });
+  }
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') showSlide(current - 1);
+    if (e.key === 'ArrowRight') showSlide(current + 1);
+  });
+})();
+
+  // Lightbox for photo zoom
+  function openLightbox(img) {
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightbox-img');
+    if (lightbox && lightboxImg && img) {
+      lightboxImg.src = img.dataset.zoomUrl || img.src;
+      lightbox.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function openLightboxFromThumb(btn) {
+    var lightbox = document.getElementById('lightbox');
+    var lightboxImg = document.getElementById('lightbox-img');
+    if (lightbox && lightboxImg && btn) {
+      lightboxImg.src = btn.dataset.zoomUrl;
+      lightbox.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeLightbox() {
+    var lightbox = document.getElementById('lightbox');
+    if (lightbox) {
+      lightbox.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // Historial Modal
+  function openHistorialModal() {
+    var modal = document.getElementById('historial-modal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeHistorialModal() {
+    var modal = document.getElementById('historial-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.getElementById('historial-close').addEventListener('click', closeHistorialModal);
+  document.getElementById('historial-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeHistorialModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeHistorialModal();
+  });
+</script>
+
+<!-- Historial Modal -->
+<div id="historial-modal" class="fixed inset-0 z-[100] hidden bg-black/50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
+    <div class="flex items-center justify-between p-4 border-b border-[#E8E0D4]">
+      <h3 class="text-lg font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Historial de cambios</h3>
+      <button id="historial-close" class="text-gray-500 hover:text-gray-700 text-2xl font-bold cursor-pointer">&times;</button>
+    </div>
+    <div class="overflow-y-auto max-h-[calc(80vh-60px)] p-4">
+      <% historiales = @producto.historiales.order(created_at: :desc).limit(50) %>
+      <% if historiales.any? %>
+        <div class="space-y-3">
+          <% historiales.each do |h| %>
+            <div class="p-3 rounded-lg bg-[#FAF7F2] border border-[#E8E0D4] cursor-pointer hover:bg-[#F5ECD7] transition-colors" onclick="this.classList.toggle('bg-[#F5ECD7]'); this.querySelector('.detalles').classList.toggle('hidden');">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-semibold text-[#2C1810] text-sm"><%= h.user.nombre %></p>
+                  <p class="text-xs text-[#9C8B7A]"><%= h.created_at.strftime("%d/%m/%Y") %> a las <%= h.created_at.strftime("%H:%M") %></p>
+                </div>
+                <span class="text-xs px-2 py-1 rounded-full bg-[#B8860B]/10 text-[#B8860B] font-medium"><%= h.campo %></span>
+              </div>
+              <p class="text-sm text-[#2C1810] mt-2 font-medium"><%= h.resumen %></p>
+              <div class="detalles hidden mt-2 pt-2 border-t border-[#E8E0D4]">
+                <% if h.valor_anterior.present? && h.valor_nuevo.present? %>
+                  <p class="text-xs text-[#9C8B7A]">Antes: <%= h.valor_anterior %></p>
+                  <p class="text-xs text-[#9C8B7A]">Ahora: <%= h.valor_nuevo %></p>
+                <% elsif h.campo == "creado" %>
+                  <p class="text-xs text-[#9C8B7A]">Producto creado</p>
+                <% else %>
+                  <p class="text-xs text-[#9C8B7A]">Cambio registrado</p>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-center text-[#9C8B7A] py-4">No hay cambios registrados</p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox" class="fixed inset-0 z-[100] hidden bg-black/95 flex items-center justify-center">
+  <button id="lightbox-close" class="absolute top-4 right-4 text-white text-4xl font-bold cursor-pointer hover:text-gray-300 z-10">&times;</button>
+  <img id="lightbox-img" src="" class="max-w-full max-h-full object-contain cursor-zoom-out" onclick="closeLightbox()">
+  <div class="absolute bottom-4 left-0 right-0 text-center text-white text-sm">Click para cerrar / Click to close</div>
 </div>

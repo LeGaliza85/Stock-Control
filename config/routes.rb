@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   resources :productos do
     collection do
       get :suggestions
+      post :buscar_por_imagen
+    end
+    member do
+      get :fotos_json
     end
   end
   resources :categorias
@@ -15,6 +19,7 @@ Rails.application.routes.draw do
       post :switch
       post :switch_to_admin
       post :switch_with_password
+      post :switch_user_with_password
       post :verify_password
       post :verify_admin
     end
