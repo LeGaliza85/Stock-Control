@@ -1,33 +1,34 @@
+
 <div class="w-full">
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <h1 class="text-3xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Inventario</h1>
     <% unless current_user.visitante? %>
-      <div class="flex gap-3">
+      <div class="flex flex-col w-full gap-3 sm:flex-row">
         <button type="button" id="btnBuscarEnStock"
-          class="inline-flex items-center gap-2 rounded-lg border-2 border-[#10B981] px-5 py-2.5 text-sm font-semibold text-[#10B981] hover:bg-[#10B981] hover:text-white transition-all duration-200">
+          class="inline-flex items-center justify-center sm:justify-start cursor-pointer gap-2 rounded-lg border-2 border-[#10B981] px-5 py-2.5 text-sm font-semibold text-[#10B981] hover:bg-[#10B981] hover:text-white transition-all duration-200">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
           Buscar en stock
         </button>
         <input type="file" id="buscarStockInput" accept="image/*" capture="environment" class="hidden">
-        
+
         <button type="button" id="btnAnalizarIAIndex"
-          class="inline-flex items-center gap-2 rounded-lg border-2 border-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-all duration-200">
+          class="inline-flex items-center justify-center sm:justify-start cursor-pointer gap-2 rounded-lg border-2 border-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-all duration-200">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
           </svg>
           Analizar con IA
         </button>
         <input type="file" id="iaCameraInputIndex" accept="image/*" capture="environment" class="hidden">
-        <%= link_to new_producto_path, class: "inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
+        <%= link_to new_producto_path, class: "inline-flex items-center justify-center sm:justify-start cursor-pointer gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
           Nuevo Producto
         <% end %>
       </div>
     <% end %>
   </div>
-  
+
   <!-- Botones flotantes para móvil (siempre visibles en móvil) -->
   <% unless current_user.visitante? %>
   <div class="fixed bottom-6 right-6 z-50 md:hidden" style="display: flex; flex-direction: column; gap: 12px;">
@@ -83,20 +84,20 @@
         </summary>
 
     <div class="mt-3 bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-5">
-      <%= form_with url: productos_path, method: :get, id: "filterForm", class: "flex flex-col sm:flex-row gap-4 items-end" do |f| %>
+      <%= form_with url: productos_path, method: :get, data: { turbo_frame: "productos" }, class: "flex flex-col sm:flex-row gap-4 items-end" do |f| %>
         <%= f.hidden_field :q, value: params[:q] %>
         <%= f.hidden_field :per_page, value: @per_page %>
         <div class="flex-1">
           <%= f.label :categoria, "Categoría", class: "block text-xs font-medium text-[#6B5744] mb-1" %>
-          <%= f.select :categoria, options_for_select(@categorias_para_filtro, params[:categoria]), { include_blank: "Todas" }, class: "filter-select w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
+          <%= f.select :categoria, options_for_select(@categorias_para_filtro, params[:categoria]), { include_blank: "Todas" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
         </div>
         <div class="flex-1">
           <%= f.label :estado, "Estado", class: "block text-xs font-medium text-[#6B5744] mb-1" %>
-          <%= f.select :estado, options_for_select(Producto.estados.keys.map { |e| [e.humanize, e] }, params[:estado]), { include_blank: "Todos" }, class: "filter-select w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
+          <%= f.select :estado, options_for_select(Producto.estados.keys.map { |e| [e.humanize, e] }, params[:estado]), { include_blank: "Todos" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
         </div>
         <div class="flex-1">
           <%= f.label :etiqueta, "Etiqueta", class: "block text-xs font-medium text-[#6B5744] mb-1" %>
-          <%= f.select :etiqueta, options_for_select(Producto.etiquetas.keys.map { |e| [e.humanize, e] }, params[:etiqueta]), { include_blank: "Todas" }, class: "filter-select w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
+          <%= f.select :etiqueta, options_for_select(Producto.etiquetas.keys.map { |e| [e.humanize, e] }, params[:etiqueta]), { include_blank: "Todas" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 text-sm" %>
         </div>
         <div class="flex gap-2">
           <%= f.submit "Aplicar", class: "rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all" %>
@@ -136,17 +137,10 @@
     <% if @productos.any? %>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         <% @productos.each do |producto| %>
-          <% fotos_producto = producto.fotos.to_a %>
-          <% num_fotos = fotos_producto.size %>
-          <div class="group block bg-white rounded-xl border border-[#E8E0D4] shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-b-[#B8860B] hover:border-b-2 transition-all duration-200 overflow-visible">
-            <div class="aspect-square bg-[#FAF7F2] flex items-center justify-center overflow-hidden rounded-t-xl relative cursor-pointer" onclick="openImageModal('<%= producto.id %>')">
-              <% if num_fotos > 0 %>
-                <% fotos_producto.each_with_index do |foto, idx| %>
-                  <%= image_tag foto.variant(resize_to_limit: [300, 300]), 
-                      class: "object-cover w-full h-full absolute inset-0 transition-opacity duration-300 producto-foto-#{producto.id}", 
-                      style: idx == 0 ? "opacity:1" : "opacity:0",
-                      data: { producto_id: producto.id, foto_idx: idx } %>
-                <% end %>
+          <%= link_to producto, data: { turbo_frame: "_top" }, class: "group block bg-white rounded-xl border border-[#E8E0D4] shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-b-[#B8860B] hover:border-b-2 transition-all duration-200 overflow-hidden" do %>
+            <div class="aspect-square bg-[#FAF7F2] flex items-center justify-center overflow-hidden rounded-t-xl relative">
+              <% if producto.fotos.attached? %>
+                <%= image_tag producto.fotos.first.variant(resize_to_limit: [300, 300]), class: "object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" %>
                 <%
                   etiqueta_colors = {
                     "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
@@ -164,15 +158,6 @@
                 <div class="absolute top-0 left-0 w-full <%= etiqueta_colors[producto.etiqueta] %> text-white text-[10px] font-bold text-center py-0.5">
                   <%= etiqueta_textos[producto.etiqueta] %>
                 </div>
-                <% if num_fotos > 1 %>
-                  <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full z-10"><%= num_fotos %></div>
-                  <button type="button" class="producto-nav-prev absolute left-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center cursor-pointer hover:bg-white transition shadow z-10" onclick="event.stopPropagation(); navegarFotoProducto('<%= producto.id %>', -1)">
-                    <svg class="w-4 h-4 text-[#2C1810]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                  </button>
-                  <button type="button" class="producto-nav-next absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center cursor-pointer hover:bg-white transition shadow z-10" onclick="event.stopPropagation(); navegarFotoProducto('<%= producto.id %>', 1)">
-                    <svg class="w-4 h-4 text-[#2C1810]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                  </button>
-                <% end %>
               <% else %>
                 <div class="flex flex-col items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#E8E0D4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -200,7 +185,7 @@
             <% if producto.codigo.present? %>
               <div class="flex justify-end px-2 py-1">
                 <span class="text-xs font-bold text-[#6B5744] bg-[#F5ECD7] px-2 py-0.5 rounded border border-[#E8E0D4]">
-                  <%= formato_codigo(producto.codigo) %>
+                  <%= producto.codigo %>
                 </span>
               </div>
             <% end %>
@@ -222,11 +207,8 @@
                   <%= producto.estado.humanize %>
                 </span>
               </div>
-              <div class="mt-3 pt-3 border-t border-[#E8E0D4]">
-                <%= link_to "Ver detalles →", producto, class: "block w-full text-center rounded-lg bg-[#B8860B] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#9A7209] transition-all", data: { turbo_frame: "_top" } %>
-              </div>
             </div>
-          </div>
+          <% end %>
         <% end %>
       </div>
 
@@ -293,7 +275,7 @@
           Galería
         </label>
         <input type="file" id="buscarStockGaleria" accept="image/*" class="hidden">
-        
+
         <label for="buscarStockCamara" class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg border-2 border-[#10B981] text-[#10B981] font-medium hover:bg-[#10B981] hover:text-white transition-all cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
@@ -355,33 +337,6 @@
         </button>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- Modal para ver fotos del producto -->
-<div id="imageModal" class="hidden fixed inset-0 z-[300] flex items-center justify-center" style="background: rgba(0, 0, 0, 0.9);">
-  <button type="button" id="closeImageModal" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center hover:bg-white/30 transition-colors">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-    </svg>
-  </button>
-  
-  <button type="button" id="prevImage" class="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/30 text-white flex items-center justify-center hover:bg-white/50 transition-colors" style="display: none;">
-    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-    </svg>
-  </button>
-  
-  <button type="button" id="nextImage" class="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/30 text-white flex items-center justify-center hover:bg-white/50 transition-colors" style="display: none;">
-    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-    </svg>
-  </button>
-
-  <div id="imageModalContent" class="max-w-[90vw] max-h-[90vh] flex flex-col items-center">
-    <img id="modalImage" src="" class="max-w-full max-h-[75vh] object-contain rounded-lg">
-    <div id="modalImageCounter" class="mt-2 text-white text-sm font-medium"></div>
-    <div id="modalThumbnails" class="hidden mt-3 flex gap-3 overflow-x-auto max-w-[90vw] py-2 px-2 bg-black/30 rounded-lg"></div>
   </div>
 </div>
 
@@ -499,17 +454,6 @@
 
 <script>
 (function() {
-  // Auto-submit form when filter selects change
-  var filterForm = document.getElementById('filterForm');
-  var filterSelects = document.querySelectorAll('.filter-select');
-  filterSelects.forEach(function(select) {
-    select.addEventListener('change', function() {
-      if (filterForm) {
-        filterForm.submit();
-      }
-    });
-  });
-
   var modal = document.getElementById('iaModalIndex');
   var btnAnalizarIndex = document.getElementById('btnAnalizarIAIndex');
   var btnCloseIndex = document.getElementById('closeIaModalIndex');
@@ -522,7 +466,7 @@
   var errorDivIndex = document.getElementById('iaErrorIndex');
   var imagePreviewIndex = document.getElementById('iaImagePreviewIndex');
   var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-  
+
   var currentImageDataIndex = null;
   var currentAnalysisIndex = null;
 
@@ -546,7 +490,7 @@
         console.log('No hay archivo seleccionado');
       }
     });
-    
+
     // Para móviles: asegurar que el input se resetee después de cada uso
     iaCameraInputIndex.addEventListener('click', function(e) {
       console.log('Input clickeado');
@@ -564,12 +508,12 @@
 
   function openModalWithImageIndex(imageData) {
     if (!modal) return;
-    
+
     currentImageDataIndex = imageData;
     resetModalIndex();
     modal.classList.remove('hidden');
     modal.classList.add('flex');
-    
+
     if (typeof imageData === 'object' && imageData.type) {
       fileToBase64Index(imageData).then(function(base64) {
         currentImageDataIndex = base64;
@@ -598,14 +542,14 @@
 
   function analyzeImageIndex() {
     if (!loadingIndex) return;
-    
+
     loadingIndex.classList.remove('hidden');
     if (resultsIndex) resultsIndex.classList.add('hidden');
     if (errorDivIndex) errorDivIndex.classList.add('hidden');
-    
+
     var formData = new FormData();
     formData.append('image_data', currentImageDataIndex);
-    
+
     fetch('/ia/analyze', {
       method: 'POST',
       headers: {
@@ -616,7 +560,7 @@
     .then(function(response) { return response.json(); })
     .then(function(data) {
       loadingIndex.classList.add('hidden');
-      
+
       if (data.error) {
         showErrorIndex(data.error, data.necesita_config === true);
       } else {
@@ -631,7 +575,7 @@
 
   function showErrorIndex(message, necesitaConfig) {
     if (!errorDivIndex) return;
-    
+
     errorDivIndex.classList.remove('hidden');
     var errorMsg = document.getElementById('iaErrorMsgIndex');
     if (errorMsg) {
@@ -645,14 +589,14 @@
 
   function showResultsIndex(data) {
     if (!resultsIndex) return;
-    
+
     resultsIndex.classList.remove('hidden');
     currentAnalysisIndex = data;
-    
+
     var confianza = data.confianza || 0;
     document.getElementById('iaConfianzaIndex').textContent = confianza + '%';
     document.getElementById('iaConfianzaBarIndex').style.width = confianza + '%';
-    
+
     var confianzaBar = document.getElementById('iaConfianzaBarIndex');
     if (confianza >= 80) {
       confianzaBar.className = 'bg-[#3D5E3D] h-2 rounded-full transition-all duration-500';
@@ -661,12 +605,12 @@
     } else {
       confianzaBar.className = 'bg-[#A63D2F] h-2 rounded-full transition-all duration-500';
     }
-    
+
     document.getElementById('iaDescripcionIndex').value = data.descripcion || '';
     document.getElementById('iaTipoProductoIndex').value = data.tipo_producto || '';
     document.getElementById('iaCategoriaSugeridaIndex').value = data.categoria_sugerida || '';
     document.getElementById('iaMarcaModeloIndex').value = data.marca_modelo || '';
-    
+
     var estadoSelect = document.getElementById('iaEstadoIndex');
     if (data.estado) {
       for (var i = 0; i < estadoSelect.options.length; i++) {
@@ -676,7 +620,7 @@
         }
       }
     }
-    
+
     var erroresDiv = document.getElementById('iaErroresIndex');
     if (data.errores && data.errores.length > 0) {
       erroresDiv.classList.remove('hidden');
@@ -688,24 +632,17 @@
 
   function createNewProductIndex() {
     if (!currentAnalysisIndex) return;
-    
+
     var descripcion = document.getElementById('iaDescripcionIndex').value;
-    var tipo = document.getElementById('iaTipoProductoIndex').value || '';
-    var marca = document.getElementById('iaMarcaModeloIndex').value || '';
+    var nombre = document.getElementById('iaMarcaModeloIndex').value || document.getElementById('iaTipoProductoIndex').value;
     var estado = document.getElementById('iaEstadoIndex').value;
-    var palabras_clave = currentAnalysisIndex.palabras_clave || [];
-    
-    // Generar nombre automático a partir de palabras clave
-    var nombreGenerado = generarNombreProducto(tipo, marca, palabras_clave, descripcion);
-    
+
     var params = new URLSearchParams();
-    if (nombreGenerado) params.set('nombre', nombreGenerado);
+    if (nombre) params.set('nombre', nombre);
     if (descripcion) params.set('descripcion', descripcion);
     if (estado) params.set('estado', estado);
-    if (tipo) params.set('ia_tipo_producto', tipo);
-    if (palabras_clave.length > 0) params.set('ia_palabras_clave', JSON.stringify(palabras_clave));
     params.set('from_ia', '1');
-    
+
     if (currentImageDataIndex) {
       if (currentImageDataIndex.length > 50000) {
         var imageKey = 'ia_image_' + Date.now();
@@ -715,86 +652,8 @@
         params.set('ia_image_data', currentImageDataIndex);
       }
     }
-    
-    window.location.href = '/productos/new?' + params.toString();
-  }
 
-  function generarNombreProducto(tipo, marca, palabras_clave, descripcion) {
-    var partes = [];
-    
-    // Palabras a excluir
-    var excluir = ['no visible', 'no detectable', 'no perceptible', 'no identificado', 'no determinado', 'ninguna', 'ninguno', 'no', 'sí', 'y', 'con', 'sin', 'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'en', 'para', 'por', 'como', 'genérico', 'generico', 'objeto', 'producto', 'item', 'articulo', 'elemento', 'utensilio', 'hogar', 'no identificable', 'identificable'];
-    
-    // Primero usar el tipo de producto como base (solo si no es genérico)
-    if (tipo && tipo.length > 2) {
-      var tipoLower = tipo.toLowerCase();
-      // No usar si es muy genérico
-      var esGenerico = tipoLower.includes('no identificable') || tipoLower.includes('genérico') || tipoLower === 'utensilio' || tipoLower === 'objeto' || tipoLower === 'producto';
-      
-      if (!esGenerico) {
-        var tipoPartes = tipo.split(' ').filter(function(p) {
-          var pLower = p.toLowerCase();
-          return p.length > 2 && !excluir.includes(pLower) && isNaN(p);
-        });
-        if (tipoPartes.length > 0) {
-          partes = tipoPartes.slice(0, 3);
-        }
-      }
-    }
-    
-    // Obtener palabras relevantes de las palabras clave
-    if (palabras_clave && palabras_clave.length > 0) {
-      var palabrasRelevantes = palabras_clave.filter(function(p) {
-        var pLower = p.toLowerCase();
-        return p.length > 3 && !excluir.includes(pLower) && isNaN(p);
-      });
-      
-      // Añadir palabras clave que no estén ya incluidas
-      palabrasRelevantes.forEach(function(p) {
-        if (partes.length < 4) {
-          var pLower = p.toLowerCase();
-          var yaIncluido = partes.some(function(parte) {
-            return parte.toLowerCase().includes(pLower) || pLower.includes(parte.toLowerCase());
-          });
-          if (!yaIncluido) {
-            partes.push(p);
-          }
-        }
-      });
-    }
-    
-    // Añadir marca si hay espacio
-    if (partes.length < 3 && marca && marca.length > 2 && !excluir.includes(marca.toLowerCase()) && marca.toLowerCase() !== 'no visible') {
-      var yaIncluido = partes.some(function(parte) {
-        return parte.toLowerCase().includes(marca.toLowerCase()) || marca.toLowerCase().includes(parte.toLowerCase());
-      });
-      if (!yaIncluido) {
-        partes.push(marca);
-      }
-    }
-    
-    // Unir las partes y limitar a 50 caracteres
-    var nombre = partes.join(' ').trim();
-    if (nombre.length > 50) {
-      nombre = nombre.substring(0, 47) + '...';
-    }
-    
-    // Si sigue vacío o es muy genérico, usar las primeras palabras de la descripción
-    var nombreLower = nombre.toLowerCase();
-    if (nombre.length < 5 || nombreLower.includes('genérico') || nombreLower.includes('generico') || nombreLower.includes('no identificable') || nombreLower.includes('utensilio')) {
-      if (descripcion && descripcion.length > 10) {
-        var palabrasDesc = descripcion.split(' ').filter(function(p) {
-          var pLower = p.toLowerCase();
-          return p.length > 4 && !excluir.includes(pLower) && isNaN(p);
-        });
-        nombre = palabrasDesc.slice(0, 4).join(' ');
-        if (nombre.length > 50) {
-          nombre = nombre.substring(0, 47) + '...';
-        }
-      }
-    }
-    
-    return nombre;
+    window.location.href = '/productos/new?' + params.toString();
   }
 
   function closeModalIndex() {
@@ -809,12 +668,12 @@
   if (btnCancelIndex) btnCancelIndex.addEventListener('click', closeModalIndex);
   if (btnCrearProductoIndex) btnCrearProductoIndex.addEventListener('click', createNewProductIndex);
   if (btnRetryIndex) btnRetryIndex.addEventListener('click', analyzeImageIndex);
-  
+
   if (modal) {
     modal.addEventListener('click', function(e) {
       if (e.target === modal) closeModalIndex();
     });
-    
+
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
         closeModalIndex();
@@ -838,10 +697,7 @@
   var buscarStockNoResults = document.getElementById('buscarStockNoResults');
   var buscarStockError = document.getElementById('buscarStockError');
   var buscarStockResultsList = document.getElementById('buscarStockResultsList');
-  var buscarStockOptions = document.getElementById('buscarStockOptions');
-  var buscarStockGaleria = document.getElementById('buscarStockGaleria');
-  var buscarStockCamara = document.getElementById('buscarStockCamara');
-  
+
   var currentBuscarStockImage = null;
   var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
@@ -855,10 +711,7 @@
   }
 
   function resetBuscarStockModal() {
-    if (buscarStockPreview) {
-      buscarStockPreview.classList.remove('hidden');
-      buscarStockPreview.innerHTML = '<div class="text-center py-8"><svg class="w-12 h-12 mx-auto text-[#E8E0D4] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><p class="text-[#9C8B7A] text-sm">Selecciona una opción arriba</p></div>';
-    }
+    if (buscarStockPreview) buscarStockPreview.classList.remove('hidden');
     if (buscarStockLoading) buscarStockLoading.classList.add('hidden');
     if (buscarStockResults) buscarStockResults.classList.add('hidden');
     if (buscarStockNoResults) buscarStockNoResults.classList.add('hidden');
@@ -866,7 +719,6 @@
     if (buscarStockOptions) buscarStockOptions.classList.remove('hidden');
     if (buscarStockGaleria) buscarStockGaleria.value = '';
     if (buscarStockCamara) buscarStockCamara.value = '';
-    currentBuscarStockImage = null;
   }
 
   function openBuscarStockModal() {
@@ -887,7 +739,7 @@
 
   function handleBuscarStockFile(file) {
     if (!file) return;
-    
+
     currentBuscarStockImage = file;
     fileToBase64(file).then(function(base64) {
       currentBuscarStockImage = base64;
@@ -925,8 +777,6 @@
           var errorMsg = document.getElementById('buscarStockErrorMsg');
           if (errorMsg) errorMsg.textContent = data.error;
         }
-      } else if (data.producto) {
-        mostrarResultados([data.producto]);
       } else if (data.productos && data.productos.length > 0) {
         mostrarResultados(data.productos);
       } else {
@@ -950,7 +800,7 @@
     buscarStockResultsList.innerHTML = '';
 
     productos.forEach(function(p) {
-      var fotoHtml = p.fotos 
+      var fotoHtml = p.fotos
         ? '<img src="' + p.fotos + '" class="w-16 h-16 object-cover rounded-lg">'
         : '<div class="w-16 h-16 bg-[#FAF7F2] rounded-lg flex items-center justify-center"><svg class="w-6 h-6 text-[#E8E0D4]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>';
 
@@ -972,7 +822,7 @@
       var item = document.createElement('a');
       item.href = '/productos/' + p.id;
       item.className = 'flex items-center gap-3 p-3 rounded-lg border border-[#E8E0D4] hover:bg-[#FAF7F2] transition-colors';
-      item.innerHTML = fotoHtml + 
+      item.innerHTML = fotoHtml +
         '<div class="flex-1 min-w-0">' +
           '<div class="flex items-center gap-2">' +
             '<span class="text-xs font-bold text-white px-1.5 py-0.5 rounded ' + color + '">' + label + '</span>' +
@@ -1052,14 +902,14 @@
     buscarStockModal.addEventListener('click', function(e) {
       if (e.target === buscarStockModal) closeBuscarStockModal();
     });
-    
+
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && !buscarStockModal.classList.contains('hidden')) {
         closeBuscarStockModal();
       }
     });
   }
-  
+
   // Botones flotantes para móvil
   var btnBuscarEnStockFloating = document.getElementById('btnBuscarEnStockFloating');
   var btnAnalizarIAFloating = document.getElementById('btnAnalizarIAFloating');
@@ -1085,153 +935,5 @@
       if (btnAnalizarIndex) btnAnalizarIndex.click();
     });
   }
-  
-  // Modal de visualización de imágenes
-  var imageModal = document.getElementById('imageModal');
-  var modalImage = document.getElementById('modalImage');
-  var modalImageCounter = document.getElementById('modalImageCounter');
-  var modalThumbnails = document.getElementById('modalThumbnails');
-  var closeImageModal = document.getElementById('closeImageModal');
-  var prevImage = document.getElementById('prevImage');
-  var nextImage = document.getElementById('nextImage');
-  
-  var currentImageIndex = 0;
-  var currentImages = [];
-  
-  window.openImageModal = function(productoId) {
-    var productoElement = document.querySelector('img[data-producto-id="' + productoId + '"]');
-    if (!productoElement) {
-      productoElement = document.querySelector('.aspect-square img');
-    }
-    
-    fetch('/productos/' + productoId + '/fotos_json')
-      .then(function(response) { return response.json(); })
-      .then(function(data) {
-        if (data.fotos && data.fotos.length > 0) {
-          currentImages = data.fotos;
-          currentImageIndex = 0;
-          showImage(currentImageIndex);
-          if (imageModal) {
-            imageModal.classList.remove('hidden');
-            imageModal.classList.add('flex');
-          }
-        }
-      })
-      .catch(function() {
-        if (productoElement && productoElement.src) {
-          currentImages = [productoElement.src];
-          currentImageIndex = 0;
-          showImage(currentImageIndex);
-          if (imageModal) {
-            imageModal.classList.remove('hidden');
-            imageModal.classList.add('flex');
-          }
-        }
-      });
-  };
-  
-  function showImage(index) {
-    if (!currentImages || currentImages.length === 0) return;
-    
-    currentImageIndex = index;
-    if (currentImageIndex < 0) currentImageIndex = currentImages.length - 1;
-    if (currentImageIndex >= currentImages.length) currentImageIndex = 0;
-    
-    if (modalImage) {
-      modalImage.src = currentImages[currentImageIndex];
-    }
-    if (modalImageCounter) {
-      modalImageCounter.textContent = (currentImageIndex + 1) + ' / ' + currentImages.length;
-    }
-    if (modalThumbnails && currentImages.length > 1) {
-      modalThumbnails.innerHTML = '';
-      modalThumbnails.classList.remove('hidden');
-      currentImages.forEach(function(img, idx) {
-        var thumbContainer = document.createElement('div');
-        thumbContainer.className = 'flex flex-col items-center gap-1';
-        
-        var thumb = document.createElement('img');
-        thumb.src = img;
-        thumb.className = 'w-20 h-20 object-cover rounded-lg cursor-pointer border-2 transition-all ' + (idx === currentImageIndex ? 'border-[#B8860B] opacity-100' : 'border-transparent opacity-60 hover:opacity-100');
-        thumb.onclick = function() { showImage(idx); };
-        
-        var label = document.createElement('span');
-        label.className = 'text-white text-xs';
-        label.textContent = (idx + 1);
-        
-        thumbContainer.appendChild(thumb);
-        thumbContainer.appendChild(label);
-        modalThumbnails.appendChild(thumbContainer);
-      });
-    } else if (modalThumbnails) {
-      modalThumbnails.classList.add('hidden');
-    }
-    
-    if (prevImage) prevImage.style.display = currentImages.length > 1 ? 'flex' : 'none';
-    if (nextImage) nextImage.style.display = currentImages.length > 1 ? 'flex' : 'none';
-  }
-  
-  function closeImageModalFunc() {
-    if (imageModal) {
-      imageModal.classList.add('hidden');
-      imageModal.classList.remove('flex');
-    }
-  }
-  
-  if (closeImageModal) {
-    closeImageModal.addEventListener('click', closeImageModalFunc);
-  }
-  
-  if (prevImage) {
-    prevImage.addEventListener('click', function(e) {
-      e.stopPropagation();
-      showImage(currentImageIndex - 1);
-    });
-  }
-  
-  if (nextImage) {
-    nextImage.addEventListener('click', function(e) {
-      e.stopPropagation();
-      showImage(currentImageIndex + 1);
-    });
-  }
-  
-  if (imageModal) {
-    imageModal.addEventListener('click', function(e) {
-      if (e.target === imageModal) closeImageModalFunc();
-    });
-    
-    document.addEventListener('keydown', function(e) {
-      if (!imageModal || imageModal.classList.contains('hidden')) return;
-      if (e.key === 'ArrowLeft') showImage(currentImageIndex - 1);
-      if (e.key === 'ArrowRight') showImage(currentImageIndex + 1);
-      if (e.key === 'Escape') closeImageModalFunc();
-    });
-  }
-  
-  // Navegar entre fotos de un producto en el índice
-  window.navegarFotoProducto = function(productoId, direccion) {
-    var fotos = document.querySelectorAll('.producto-foto-' + productoId);
-    if (fotos.length <= 1) return;
-    
-    var actual = 0;
-    fotos.forEach(function(foto, idx) {
-      if (foto.style.opacity === '1' || foto.style.opacity === '') {
-        actual = idx;
-        foto.style.opacity = '0';
-      }
-    });
-    
-    var nueva = actual + direccion;
-    if (nueva >= fotos.length) nueva = 0;
-    if (nueva < 0) nueva = fotos.length - 1;
-    
-    fotos[nueva].style.opacity = '1';
-  };
-  
-  // Navegación con teclado en miniaturas de productos
-  document.addEventListener('keydown', function(e) {
-    if (e.target.closest('.producto-card')) return;
-  });
 })();
 </script>
