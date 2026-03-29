@@ -1,8 +1,5 @@
 #!/bin/bash -e
 
-# Create storage directory if it doesn't exist
-mkdir -p /rails/storage
-
 # If running the rails server then create or migrate existing database
 if [ "${1:-}" = "bundle" ] && [ "${2:-}" = "exec" ] && [ "${3:-}" = "rails" ] && [ "${4:-}" = "server" ]; then
   echo "Preparing database..."
