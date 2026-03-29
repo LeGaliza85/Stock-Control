@@ -67,6 +67,9 @@ USER 1000:1000
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --chown=rails:rails --from=build /rails /rails
 
+# Ensure master.key is readable (required for production)
+RUN chmod 644 /rails/config/master.key 2>/dev/null || true
+
 # Create storage directory with proper permissions
 RUN mkdir -p /rails/storage && chown -R rails:rails /rails/storage
 
