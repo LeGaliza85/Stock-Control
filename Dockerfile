@@ -51,11 +51,9 @@ COPY . .
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
-
-
-
+# Compilar assets (Tailwind + JavaScript)
+RUN SECRET_KEY_BASE=dummy bundle exec rails tailwindcss:build
+RUN SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
 
 # Final stage for app image
 FROM base
@@ -72,6 +70,8 @@ COPY --chown=rails:rails --from=build /rails /rails
 # Entrypoint prepares the database.
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Start server via Thruster by default, this can be overwritten at runtime
-EXPOSE 80
-CMD ["./bundle", "exec", "rails", "server"]
+# Exponer puerto
+EXPOSE 3000
+
+# Comando para iniciar
+CMD ["bundle", "exec", "rails", "server", "-e", "production", "-b", "0.0.0.0"]
