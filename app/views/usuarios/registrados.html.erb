@@ -1,0 +1,48 @@
+<div class="w-full max-w-4xl mx-auto">
+  <div class="mb-6">
+    <%= link_to productos_path, class: "inline-flex items-center gap-1 text-[#B8860B] hover:text-[#9A7209] text-sm font-medium transition-all duration-200" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      Volver al inventario
+    <% end %>
+  </div>
+  
+  <h1 class="text-3xl font-bold text-[#2C1810] mb-2" style="font-family: 'Playfair Display', serif;">Usuarios Registrados</h1>
+  <p class="text-[#6B5744] mb-8">Usuarios que se han registrado públicamente desde "Crear cuenta"</p>
+  
+  <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-[#F5ECD7]">
+        <tr>
+          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Nombre</th>
+          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Email</th>
+          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Fecha de registro</th>
+          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Contraseña</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-[#E8E0D4]">
+        <% if @usuarios.any? %>
+          <% @usuarios.each do |usuario| %>
+            <tr class="hover:bg-[#FAF7F2]">
+              <td class="px-6 py-4 text-sm text-[#2C1810]"><%= usuario.nombre %></td>
+              <td class="px-6 py-4 text-sm text-[#2C1810]"><%= usuario.email_address %></td>
+              <td class="px-6 py-4 text-sm text-[#2C1810]">
+                <% if usuario.registered_at %>
+                  <%= usuario.registered_at.strftime("%d/%m/%Y %H:%M") %>
+                <% else %>
+                  -
+                <% end %>
+              </td>
+              <td class="px-6 py-4 text-sm text-[#9C8B7A]">---------</td>
+            </tr>
+          <% end %>
+        <% else %>
+          <tr>
+            <td colspan="4" class="px-6 py-8 text-center text-[#9C8B7A]">
+              No hay usuarios registrados públicamente
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

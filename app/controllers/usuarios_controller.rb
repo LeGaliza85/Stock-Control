@@ -30,6 +30,13 @@ class UsuariosController < ApplicationController
     render "index"
   end
 
+  def registrados
+    return redirect_to(root_path, alert: "Solo administradores.") unless current_user&.admin?
+    
+    @usuarios = User.where.not(registered_at: nil).order(registered_at: :desc)
+    render "registrados"
+  end
+
   def new
     session_id = cookies.signed[:session_id]
     return redirect_to(new_session_path, alert: "Debes iniciar sesión.") unless session_id
@@ -132,6 +139,14 @@ class UsuariosController < ApplicationController
 
   def switch
     user = User.find(params[:id])
+
+    # If target is not a visitor, require password
+    unless user.visitante?
+      unless user.authenticate(params[:password])
+        render json: { success: false, error: "Contraseña incorrecta" }, status: :unauthorized
+        return
+      end
+    end
 
     terminate_session
     start_new_session_for(user)

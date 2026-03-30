@@ -22,6 +22,20 @@ class CategoriasController < ApplicationController
     end
   end
 
+  def quick_create
+    @categoria = Categoria.new(categoria_params)
+
+    if @categoria.save
+      respond_to do |format|
+        format.json { render json: { success: true, categoria: { id: @categoria.id, nombre: @categoria.nombre } } }
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { success: false, errors: @categoria.errors.full_messages }, status: :unprocessable_entity }
+      end
+    end
+  end
+
   def edit
   end
 

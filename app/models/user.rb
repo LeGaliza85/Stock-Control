@@ -3,6 +3,7 @@ class User < ApplicationRecord
   has_many :sessions, dependent: :destroy
   has_many :productos, dependent: :nullify
   has_many :ia_usages, dependent: :destroy
+  has_many :notificaciones, class_name: 'Notificacion', foreign_key: 'user_id', dependent: :destroy
 
   enum :rol, { visitante: 0, admin: 2 }
 

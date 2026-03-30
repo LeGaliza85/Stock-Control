@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_30_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_30_030000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -70,6 +70,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_30_010000) do
     t.index ["producto_id"], name: "index_notas_on_producto_id"
     t.index ["user_id", "created_at"], name: "index_notas_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_notas_on_user_id"
+  end
+
+  create_table "notificaciones", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "leida", default: false
+    t.integer "producto_id", null: false
+    t.string "tipo", default: "nuevo_producto", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["created_at"], name: "index_notificaciones_on_created_at"
+    t.index ["leida"], name: "index_notificaciones_on_leida"
+    t.index ["producto_id"], name: "index_notificaciones_on_producto_id"
+    t.index ["user_id"], name: "index_notificaciones_on_user_id"
   end
 
   create_table "producto_historiales", force: :cascade do |t|
@@ -144,6 +157,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_30_010000) do
     t.string "moondream_mode", default: "cloud"
     t.string "nombre", null: false
     t.string "password_digest", null: false
+    t.datetime "registered_at"
     t.integer "rol", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
@@ -154,6 +168,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_30_010000) do
   add_foreign_key "ia_usages", "users"
   add_foreign_key "notas", "productos", on_delete: :cascade
   add_foreign_key "notas", "users", on_delete: :cascade
+  add_foreign_key "notificaciones", "productos"
+  add_foreign_key "notificaciones", "users"
   add_foreign_key "producto_historiales", "productos", on_delete: :cascade
   add_foreign_key "producto_historiales", "users", on_delete: :nullify
   add_foreign_key "producto_vistos", "productos", on_delete: :cascade

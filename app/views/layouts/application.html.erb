@@ -26,16 +26,85 @@
           <a href="<%= categorias_path %>" class="whitespace-nowrap" style="color:#E8E0D4; text-decoration:none; font-size:13px sm:14px;">Categorías</a>
         </div>
 
-        <!-- Derecha: Menu principal y nombre de usuario (sin avatar) -->
+        <!-- Derecha: Menu principal, notificaciones y nombre de usuario (sin avatar) -->
         <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-          <% if authenticated? %>
-            <button id="headerMainBtn" onclick="toggleHeaderMainMenu(event)" class="whitespace-nowrap" style="background: transparent; border:1px solid #E8E0D4; color:#E8E0D4; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px sm:14px;">Menu</button>
-            <div id="headerUsername" class="whitespace-nowrap" style="padding:4px 8px; border-radius:6px; border:1px solid #E8E0D4; background:transparent; color:var(--accent); font-weight:600; display:inline-block; cursor:pointer; font-size:12px sm:14px;" onclick="toggleDesktopUserMenu(event)">
-              <%= current_user.nombre %>
+          <% if authenticated? && !current_user.visitante? %>
+            <div style="position: relative;">
+              <button id="notifBtn" onclick="toggleNotificaciones(event)" style="background: transparent; border:1px solid #E8E0D4; color:#E8E0D4; padding:2px 6px; border-radius:6px; cursor:pointer; font-size:11px; position: relative;">
+                Notificaciones
+                <% if current_user.notificaciones.no_leidas.any? %>
+                  <span style="position: absolute; top:-5px; right:-5px; background:#A63D2F; color:white; border-radius:50%; width:14px; height:14px; font-size:9px; display:flex; align-items:center; justify-content:center;"><%= current_user.notificaciones.no_leidas.count %></span>
+                <% end %>
+              </button>
+              <div id="notifDropdown" class="hidden" style="position:absolute; right:0; top:100%; margin-top:8px; background:#2A1E1A; border:1px solid #3D2E28; border-radius:6px; min-width:320px; max-height:400px; overflow-y:auto; z-index: 1000;">
+                <div style="padding:8px 12px; border-bottom:1px solid #3D2E28; display:flex; justify-content:space-between; align-items:center;">
+                  <span style="color:#E8E0D4; font-weight:600; font-size:13px;">Notificaciones</span>
+                  <div style="display:flex; gap:8px;">
+                    <% if current_user.notificaciones.leidas.any? %>
+                      <form action="<%= eliminar_leidas_notificaciones_path %>" method="post" onsubmit="return confirm('¿Eliminar notificaciones leídas?');">
+                        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                        <input type="hidden" name="_method" value="delete">
+                        <button type="submit" style="background:transparent; border:none; color:#9C8B7A; font-size:11px; cursor:pointer;">Eliminar vistas</button>
+                      </form>
+                    <% end %>
+                    <% if current_user.notificaciones.any? %>
+                      <form action="<%= eliminar_todas_notificaciones_path %>" method="post" onsubmit="return confirm('¿Eliminar todas las notificaciones?');">
+                        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                        <input type="hidden" name="_method" value="delete">
+                        <button type="submit" style="background:transparent; border:none; color:#A63D2F; font-size:11px; cursor:pointer;">Eliminar todas</button>
+                      </form>
+                    <% end %>
+                    <% if current_user.notificaciones.no_leidas.any? %>
+                      <form action="<%= marcar_todas_leidas_notificaciones_path %>" method="post">
+                        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                        <button type="submit" style="background:transparent; border:none; color:#B8860B; font-size:11px; cursor:pointer;">Marcar todas como leídas</button>
+                      </form>
+                    <% end %>
+                  </div>
+                </div>
+                <div style="max-height:340px; overflow-y:auto;">
+                  <% if current_user.notificaciones.recientes.any? %>
+                    <% current_user.notificaciones.recientes.each do |n| %>
+                      <div style="padding:10px 12px; border-bottom:1px solid #3D2E28; <%= n.leida ? 'opacity:0.6;' : 'background:#3D2E28;' %>">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                          <a href="<%= producto_path(n.producto) %>" style="color:#E8E0D4; text-decoration:none; flex:1;">
+                            <div style="font-size:12px;">
+                              <strong><%= n.producto.nombre %></strong>
+                            </div>
+                            <div style="font-size:11px; color:#9C8B7A;">
+                              <%= n.tipo == 'nuevo_producto' ? 'Nuevo producto registrado' : n.tipo %> - <%= n.created_at.strftime("%d/%m/%Y %H:%M") %>
+                            </div>
+                          </a>
+                          <% unless n.leida %>
+                            <form action="<%= marcar_leida_notificacione_path(n) %>" method="post" style="margin-left:8px;">
+                              <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                              <button type="submit" title="Marcar como leída" style="background:transparent; border:none; color:#9C8B7A; cursor:pointer; padding:2px;">✓</button>
+                            </form>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <div style="padding:20px; text-align:center; color:#9C8B7A; font-size:12px;">Sin notificaciones</div>
+                  <% end %>
+                </div>
             </div>
-          <% else %>
-            <a href="<%= new_session_path %>" style="color:#E8E0D4; text-decoration:none; font-size:14px;">Iniciar sesión</a>
-          <% end %>
+            <% end %>
+            <% if authenticated? %>
+              <% if current_user.visitante? %>
+                <button id="headerMainBtn" onclick="toggleHeaderMainMenu(event)" class="whitespace-nowrap" style="background: transparent; border:1px solid #E8E0D4; color:#E8E0D4; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px;">Menu</button>
+                <div id="headerUsername" class="whitespace-nowrap" style="padding:4px 8px; border-radius:6px; border:1px solid #E8E0D4; background:transparent; color:var(--accent); font-weight:600; display:inline-block; cursor:pointer; font-size:12px;" onclick="toggleDesktopUserMenu(event)">
+                  <%= current_user.nombre %>
+                </div>
+              <% else %>
+                <button id="headerMainBtn" onclick="toggleHeaderMainMenu(event)" class="whitespace-nowrap" style="background: transparent; border:1px solid #E8E0D4; color:#E8E0D4; padding:4px 8px; border-radius:6px; cursor:pointer; font-size:12px;">Menu</button>
+                <div id="headerUsername" class="whitespace-nowrap" style="padding:4px 8px; border-radius:6px; border:1px solid #E8E0D4; background:transparent; color:var(--accent); font-weight:600; display:inline-block; cursor:pointer; font-size:12px;" onclick="toggleDesktopUserMenu(event)">
+                  <%= current_user.nombre %>
+                </div>
+              <% end %>
+            <% else %>
+              <a href="<%= new_session_path %>" style="color:#E8E0D4; text-decoration:none; font-size:14px;">Iniciar sesión</a>
+            <% end %>
         </div>
       </div>
 
@@ -45,6 +114,9 @@
         <a href="<%= categorias_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Categorías</a>
         <% if authenticated? && !current_user.visitante? %>
           <a href="<%= config_ia_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Configuración IA</a>
+          <% if current_user.admin? %>
+            <a href="<%= usuarios_registrados_path %>" class="block" style="color:#E8E0D4; text-decoration:none; padding:6px 8px; display:block;">Usuarios registrados</a>
+          <% end %>
         <% end %>
       </div>
     </nav>
@@ -54,19 +126,16 @@
   <% if authenticated? %>
   <div id="desktopUserDropdown" class="hidden" style="position: fixed; z-index: 999; right: 20px; top: 70px; background:#2A1E1A; border:1px solid #3D2E28; border-radius:6px; padding:8px 0; min-width:260px;">
     <div style="padding:6px 12px; font-size:11px; color:#9C8B7A; border-bottom:1px solid #3D2E28;">Cambiar a:</div>
-    <% User.order(:nombre).each do |u| %>
+      <% User.order(:nombre).each do |u| %>
       <% next if u.id == current_user.id %>
-      <% if u.visitante? %>
-        <button type="button" onclick="directSwitch('<%= u.id %>')" style="width:100%; text-align:left; padding:8px 12px; background:transparent; border:none; color:#E8E0D4;"> <%= u.nombre %> </button>
-      <% else %>
-        <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" class="switch-user-btn" style="width:100%; text-align:left; padding:8px 12px; background:transparent; border:none; color:#E8E0D4;"> <%= u.nombre %> </button>
-      <% end %>
+      <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-visitor="<%= u.visitante? %>" class="switch-user-btn" style="width:100%; text-align:left; padding:8px 12px; background:transparent; border:none; color:#E8E0D4;"> <%= u.nombre %> </button>
     <% end %>
     <div style="border-top:1px solid #3D2E28; margin:6px 0"></div>
     <% if current_user.rol != 'visitante' %>
       <a href="<%= new_usuario_path %>" style="display:block; padding:8px 12px; color:#B8860B; text-decoration:none;">+ Nuevo usuario</a>
       <% if current_user.rol == 'admin' %>
         <a href="<%= gestionar_usuarios_path %>" style="display:block; padding:8px 12px; color:#E8E0D4; text-decoration:none;">Gestionar usuarios</a>
+        <a href="<%= usuarios_registrados_path %>" style="display:block; padding:8px 12px; color:#E8E0D4; text-decoration:none;">Usuarios registrados</a>
       <% end %>
       <a href="<%= config_ia_path %>" style="display:block; padding:8px 12px; color:#B8860B; text-decoration:none;">Configuración IA</a>
     <% end %>
@@ -92,6 +161,12 @@
     function toggleDesktopUserMenu(e) {
       e.preventDefault();
       var el = document.getElementById('desktopUserDropdown');
+      if (el) el.classList.toggle('hidden');
+    }
+    function toggleNotificaciones(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var el = document.getElementById('notifDropdown');
       if (el) el.classList.toggle('hidden');
     }
     function directSwitch(targetUserId) {
@@ -133,25 +208,38 @@
       if (du && !du.contains(ev.target) && hu && ev.target !== hu) {
         du.classList.add('hidden');
       }
+      var nd = document.getElementById('notifDropdown');
+      var nb = document.getElementById('notifBtn');
+      if (nd && !nd.contains(ev.target) && nb && !nb.contains(ev.target)) {
+        nd.classList.add('hidden');
+      }
       if (ev.target.classList.contains('switch-user-btn')) {
         var btn = ev.target;
         var userId = btn.dataset.userId;
         var userName = btn.dataset.userName;
-        var password = prompt("Ingresa la contraseña de " + userName + ":");
-        if (!password) return;
+        var isVisitor = btn.dataset.visitor === 'true';
+        
+        var password = '';
+        if (!isVisitor) {
+          password = prompt("Ingresa la contraseña de " + userName + ":");
+          if (password === null) return;
+        }
         
         btn.disabled = true;
         btn.textContent = 'Cambiando...';
         
         var token = document.querySelector('meta[name="csrf-token"]').content;
-        fetch('/usuarios/switch_with_password.json', {
+        var params = { id: userId };
+        if (password) params.password = password;
+        
+        fetch('/usuarios/switch.json', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRF-Token': token,
             'Accept': 'application/json'
           },
-          body: new URLSearchParams({ user_id: userId, password: password }).toString()
+          body: new URLSearchParams(params).toString()
         }).then(function(resp){
           if (!resp.ok) {
             throw new Error('HTTP ' + resp.status);
@@ -164,12 +252,12 @@
             setTimeout(function(){ location.reload(); }, 100);
           } else { 
             btn.disabled = false;
-            btn.textContent = 'Cambiar sesión';
+            btn.textContent = userName;
             alert(data.error || 'Error cambiando usuario'); 
           }
         }).catch(function(err){ 
           btn.disabled = false;
-          btn.textContent = 'Cambiar sesión';
+          btn.textContent = userName;
           console.error('Switch error:', err);
           alert('Error de red: ' + err.message); 
         });

@@ -9,6 +9,7 @@ class RegistrationsController < ApplicationController
 
   def create
     @user = User.new(registration_params)
+    @user.registered_at = Time.current
 
     if @user.save
       start_new_session_for @user

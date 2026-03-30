@@ -27,7 +27,12 @@ module Authentication
     end
 
     def resume_session
-      Current.session ||= find_session_by_cookie
+      session_from_cookie = find_session_by_cookie
+      if session_from_cookie
+        Current.session = session_from_cookie
+      else
+        Current.session = nil
+      end
     end
 
     def find_session_by_cookie

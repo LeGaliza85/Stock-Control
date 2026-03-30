@@ -41,6 +41,7 @@ class ProductosController < ApplicationController
   def show
     if current_user && !current_user.visitante?
       ProductoVisto.registrar!(@producto, current_user)
+      current_user.notificaciones.where(producto: @producto, leida: false).update_all(leida: true)
     end
   end
 
@@ -128,6 +129,7 @@ class ProductosController < ApplicationController
     end
 
     if @producto.save
+      crear_notificaciones_nuevo_producto(@producto)
       redirect_to @producto, notice: "Producto creado exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -375,5 +377,18 @@ class ProductosController < ApplicationController
 
   def producto_params
     params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, :etiqueta, :ia_image_data, :fotos => [] ])
+  end
+
+  def crear_notificaciones_nuevo_producto(producto)
+    admins = User.where(rol: :admin).where.not(id: current_user.id)
+    admins.each do |admin|
+      Notificacion.find_or_create_by!(
+        user: admin,
+        producto: producto
+      ) do |n|
+        n.tipo = "nuevo_producto"
+        n.leida = false
+      end
+    end
   end
 end

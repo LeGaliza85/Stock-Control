@@ -7,6 +7,7 @@ class Producto < ApplicationRecord
   has_many_attached :fotos
   has_many :historiales, class_name: "ProductoHistorial", dependent: :destroy
   has_many :notas, dependent: :destroy
+  has_many :notificaciones, class_name: 'Notificacion', foreign_key: 'producto_id', dependent: :destroy
 
   enum :estado, {
     nuevo: 0,
