@@ -19,10 +19,3 @@ development:
 test:
   <<: *default
   database: storage/test.sqlite3
-
-# Production uses PostgreSQL (set DATABASE_URL environment variable)
-production:
-  adapter: postgresql
-  encoding: unicode
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  url: <%= ENV.fetch("DATABASE_URL") %>

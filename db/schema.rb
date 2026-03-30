@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_29_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_30_010000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -60,6 +60,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_120000) do
     t.index ["user_id", "ia_service"], name: "index_ia_usages_on_user_id_and_ia_service", unique: true
   end
 
+  create_table "notas", force: :cascade do |t|
+    t.text "contenido", limit: 1000
+    t.datetime "created_at", null: false
+    t.integer "producto_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["producto_id", "created_at"], name: "index_notas_on_producto_id_and_created_at"
+    t.index ["producto_id"], name: "index_notas_on_producto_id"
+    t.index ["user_id", "created_at"], name: "index_notas_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_notas_on_user_id"
+  end
+
   create_table "producto_historiales", force: :cascade do |t|
     t.string "campo"
     t.datetime "created_at"
@@ -71,6 +83,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_120000) do
     t.index ["producto_id", "created_at"], name: "index_producto_historiales_on_producto_id_and_created_at"
     t.index ["producto_id"], name: "index_producto_historiales_on_producto_id"
     t.index ["user_id"], name: "index_producto_historiales_on_user_id"
+  end
+
+  create_table "producto_vistos", force: :cascade do |t|
+    t.integer "producto_id", null: false
+    t.integer "user_id", null: false
+    t.datetime "visto_at"
+    t.index ["producto_id", "visto_at"], name: "index_producto_vistos_on_producto_id_and_visto_at"
+    t.index ["producto_id"], name: "index_producto_vistos_on_producto_id"
+    t.index ["user_id", "producto_id"], name: "index_producto_vistos_on_user_id_and_producto_id", unique: true
+    t.index ["user_id", "visto_at"], name: "index_producto_vistos_on_user_id_and_visto_at"
+    t.index ["user_id"], name: "index_producto_vistos_on_user_id"
   end
 
   create_table "productos", force: :cascade do |t|
@@ -129,8 +152,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_120000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "ia_usages", "users"
+  add_foreign_key "notas", "productos", on_delete: :cascade
+  add_foreign_key "notas", "users", on_delete: :cascade
   add_foreign_key "producto_historiales", "productos", on_delete: :cascade
   add_foreign_key "producto_historiales", "users", on_delete: :nullify
+  add_foreign_key "producto_vistos", "productos", on_delete: :cascade
+  add_foreign_key "producto_vistos", "users", on_delete: :cascade
   add_foreign_key "productos", "users"
   add_foreign_key "productos", "users", column: "last_updated_by_id"
   add_foreign_key "sessions", "users"

@@ -4,20 +4,44 @@ class ProductosController < ApplicationController
   before_action :require_no_visitante, only: [ :new, :create, :edit, :update, :destroy ]
 
   def index
-    @productos = Producto.includes(:user, :categoria).with_attached_fotos.order(created_at: :desc)
-    @productos = @productos.buscar(params[:q]) if params[:q].present?
-    @productos = @productos.por_categoria(params[:categoria]) if params[:categoria].present?
-    @productos = @productos.por_estado(params[:estado]) if params[:estado].present?
+    if params[:vistos] == "true" && current_user && !current_user.visitante?
+      ids_ordenados = ProductoVisto.where(user: current_user).order(visto_at: :desc).pluck(:producto_id)
+      
+      if ids_ordenados.empty?
+        @productos = Producto.none
+      else
+        @productos = Producto.where(id: ids_ordenados)
+          .includes(:user, :categoria).with_attached_fotos
+          .order("CASE id " + ids_ordenados.each_with_index.map { |id, i| "WHEN #{id} THEN #{i}" }.join(" ") + " END")
+      end
+      @productos = @productos.por_categoria(params[:categoria]) if params[:categoria].present?
+      @productos = @productos.por_estado(params[:estado]) if params[:estado].present?
+      @productos = @productos.por_etiqueta(params[:etiqueta]) if params[:etiqueta].present?
+      @total = @productos.count
+      @per_page = (params[:per_page] || 12).to_i
+      @per_page = 12 unless [ 12, 24, 48 ].include?(@per_page)
+      @page = [ params[:page].to_i, 1 ].max
+      @productos = @productos.offset((@page - 1) * @per_page).limit(@per_page)
+    else
+      @productos = Producto.includes(:user, :categoria).with_attached_fotos.order(created_at: :desc)
+      @productos = @productos.buscar(params[:q]) if params[:q].present?
+      @productos = @productos.por_categoria(params[:categoria]) if params[:categoria].present?
+      @productos = @productos.por_estado(params[:estado]) if params[:estado].present?
+      @productos = @productos.por_etiqueta(params[:etiqueta]) if params[:etiqueta].present?
 
-    @per_page = (params[:per_page] || 12).to_i
-    @per_page = 12 unless [ 12, 24, 48 ].include?(@per_page)
-    @page = [ params[:page].to_i, 1 ].max
-    @total = @productos.count
-    @productos = @productos.offset((@page - 1) * @per_page).limit(@per_page)
+      @per_page = (params[:per_page] || 12).to_i
+      @per_page = 12 unless [ 12, 24, 48 ].include?(@per_page)
+      @page = [ params[:page].to_i, 1 ].max
+      @total = @productos.count
+      @productos = @productos.offset((@page - 1) * @per_page).limit(@per_page)
+    end
     @categorias_para_filtro = Categoria.order(:nombre).pluck(:nombre, :id)
   end
 
   def show
+    if current_user && !current_user.visitante?
+      ProductoVisto.registrar!(@producto, current_user)
+    end
   end
 
   def fotos_json

@@ -57,4 +57,10 @@ module Authentication
       end
       cookies.delete(:session_id)
     end
+
+    def require_no_visitante
+      if current_user&.visitante?
+        redirect_to productos_path, alert: "No tienes permiso para acceder a esta función."
+      end
+    end
 end

@@ -5,8 +5,7 @@ services:
     stdin_open: true
     build:
       context: .
-      # dockerfile: Dockerfile.dev
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     volumes:
       - .:/rails
       - bundle_data:/usr/local/bundle

@@ -10,6 +10,7 @@ Rails.application.routes.draw do
     member do
       get :fotos_json
     end
+    resources :notas, only: [ :create, :update, :destroy ]
   end
   resources :categorias
 

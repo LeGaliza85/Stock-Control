@@ -6,6 +6,7 @@ class Producto < ApplicationRecord
   belongs_to :categoria
   has_many_attached :fotos
   has_many :historiales, class_name: "ProductoHistorial", dependent: :destroy
+  has_many :notas, dependent: :destroy
 
   enum :estado, {
     nuevo: 0,
