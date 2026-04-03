@@ -60,7 +60,7 @@
   <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8">
     <!-- Header -->
     <div class="flex justify-between items-start mb-2">
-      <h1 class="text-3xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;"><%= @producto.nombre %></h1>
+      <h1 class="text-3xl font-bold text-[#2C1810] wrap-break-word" style="font-family: 'Playfair Display', serif;"><%= @producto.nombre %></h1>
       <%
         badge_colors = {
           "nuevo" => "bg-[#E8F0E8] text-[#3D5E3D]",
@@ -214,7 +214,7 @@
                 </div>
               </div>
               <p id="nota-content-<%= nota.id %>" class="text-[#6B5744] text-sm whitespace-pre-wrap"><%= nota.contenido %></p>
-              
+
               <div id="nota-edit-<%= nota.id %>" class="hidden mt-2">
                 <%= form_with(url: producto_nota_path(@producto, nota), method: :patch, local: true, data: { turbo: false }) do |f| %>
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
@@ -229,7 +229,7 @@
               </div>
             </div>
           <% end %>
-          
+
           <% if @producto.notas.empty? %>
             <p class="text-center text-[#9C8B7A] py-4">No hay notas todavía</p>
           <% end %>
@@ -268,31 +268,31 @@
         var modal = document.getElementById('nota-delete-modal');
         var previewEl = document.getElementById('nota-delete-preview');
         var confirmBtn = document.getElementById('nota-delete-confirm');
-        
+
         previewEl.textContent = preview + (preview.length >= 50 ? '...' : '');
         notaDeleteUrl = '/productos/' + <%= @producto.id %> + '/notas/' + id;
-        
+
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        
+
         confirmBtn.onclick = function() {
           var form = document.createElement('form');
           form.method = 'POST';
           form.action = notaDeleteUrl;
-          
+
           var methodInput = document.createElement('input');
           methodInput.type = 'hidden';
           methodInput.name = '_method';
           methodInput.value = 'delete';
           form.appendChild(methodInput);
-          
+
           var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
           var csrfInput = document.createElement('input');
           csrfInput.type = 'hidden';
           csrfInput.name = 'authenticity_token';
           csrfInput.value = csrfToken;
           form.appendChild(csrfInput);
-          
+
           document.body.appendChild(form);
           form.submit();
         };
@@ -318,30 +318,30 @@
 (function() {
   var gallery = document.getElementById('gallery');
   if (!gallery) return;
-  
+
   var count = parseInt(gallery.dataset.count);
   if (count <= 1) return;
-  
+
   var current = 0;
   var slides = gallery.querySelectorAll('[data-slide]');
   var thumbs = document.getElementById('galThumbs');
   var counter = document.getElementById('galCounter');
   var prevBtn = document.getElementById('galPrev');
   var nextBtn = document.getElementById('galNext');
-  
+
   function showSlide(index) {
     current = index;
     if (current < 0) current = count - 1;
     if (current >= count) current = 0;
-    
+
     slides.forEach(function(slide, i) {
       slide.style.opacity = (i === current) ? '1' : '0';
     });
-    
+
     if (counter) {
       counter.textContent = (current + 1) + ' / ' + count;
     }
-    
+
     if (thumbs) {
       thumbs.querySelectorAll('button').forEach(function(btn, i) {
         btn.classList.toggle('border-[#B8860B]', i === current);
@@ -351,21 +351,21 @@
       });
     }
   }
-  
+
   if (prevBtn) {
     prevBtn.addEventListener('click', function(e) {
       e.preventDefault();
       showSlide(current - 1);
     });
   }
-  
+
   if (nextBtn) {
     nextBtn.addEventListener('click', function(e) {
       e.preventDefault();
       showSlide(current + 1);
     });
   }
-  
+
   if (thumbs) {
     thumbs.querySelectorAll('button').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
@@ -374,7 +374,7 @@
       });
     });
   }
-  
+
   document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowLeft') showSlide(current - 1);
     if (e.key === 'ArrowRight') showSlide(current + 1);

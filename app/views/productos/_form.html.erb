@@ -28,11 +28,11 @@
     <div class="space-y-5">
       <div>
         <%= f.label :nombre, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.text_field :nombre, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.text_field :nombre, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base truncate" %>
       </div>
       <div>
         <%= f.label :descripcion, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.text_area :descripcion, rows: 4, id: "descripcionField", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.text_area :descripcion, rows: 4, id: "descripcionField", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
       </div>
     </div>
   </div>
@@ -42,14 +42,14 @@
   <!-- Precios -->
   <div class="mb-8">
     <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Precios</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
       <div>
         <%= f.label :precio_compra, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.number_field :precio_compra, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.number_field :precio_compra, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
       </div>
       <div>
         <%= f.label :precio_venta, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.number_field :precio_venta, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.number_field :precio_venta, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
       </div>
     </div>
   </div>
@@ -59,21 +59,21 @@
   <!-- Detalles -->
   <div class="mb-8">
     <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Detalles</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
       <div>
         <%= f.label :estado, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.select :estado, Producto.estados.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar estado" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.select :estado, Producto.estados.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar estado" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
       </div>
       <div>
         <%= f.label :categoria_id, "Categoría", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.select :categoria_id, Categoria.order(:nombre).pluck(:nombre, :id), { prompt: "Seleccionar categoría" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.select :categoria_id, Categoria.order(:nombre).pluck(:nombre, :id), { prompt: "Seleccionar categoría" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
         <p class="mt-1.5 text-xs text-[#9C8B7A]">
           ¿No encuentras la categoría? <button type="button" onclick="document.getElementById('newCategoriaModal').classList.remove('hidden')" class="text-[#B8860B] hover:text-[#9A7209] underline">Crear nueva</button>
         </p>
       </div>
       <div>
         <%= f.label :etiqueta, "Etiqueta", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.select :etiqueta, Producto.etiquetas.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar etiqueta" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.select :etiqueta, Producto.etiquetas.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar etiqueta" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
       </div>
     </div>
   </div>
@@ -106,15 +106,14 @@
       </button>
       <input type="file" id="fotosInput" name="producto[fotos][]" accept="image/*" multiple class="hidden" data-action="change->photo-preview#preview">
 
-      <button type="button" id="btnAnalizarIA" data-has-photos="<%= @producto.fotos.attached? || false %>"
-        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white"
-        onclick="console.log('Botón IA clickeado');">
+      <button type="button" id="btnAnalizarIA" onclick="analizarFotoIA()"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
         </svg>
         Analizar con IA
       </button>
-      <input type="file" id="iaCameraInput" accept="image/*" capture="environment" class="hidden">
+      <input type="file" id="iaCameraInput" accept="image/*" capture="environment" class="hidden" onchange="if(this.files[0]){var r=new FileReader();r.onload=function(e){analizarImagenDesdeSrc(e.target.result)};r.readAsDataURL(this.files[0])}">
     </div>
 
     <div data-photo-preview-target="preview" class="mt-3 flex flex-wrap gap-3 min-h-[20px]"></div>
@@ -414,187 +413,154 @@ function cancelarEliminar(button, fotoId) {
   container.querySelector('.foto-marcada').classList.add('hidden');
 }
 
-// Analizar fotos existentes con IA
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM cargado, buscando botón IA...');
-  var btnAnalizarIA = document.getElementById('btnAnalizarIA');
-  var iaCameraInput = document.getElementById('iaCameraInput');
-  var fotosInput = document.getElementById('fotosInput');
-  var cameraInputContainer = document.getElementById('cameraInputContainer');
-  var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
+// Funciones globales para análisis de IA
+function analizarImagenDesdeSrc(src) {
+  console.log('analizarImagenDesdeSrc llamado');
+  var modal = document.getElementById('iaModal');
+  var loading = document.getElementById('iaLoading');
+  var results = document.getElementById('iaResults');
+  var preview = document.getElementById('iaImagePreview');
+  var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
   
-  console.log('btnAnalizarIA:', btnAnalizarIA);
-  console.log('iaCameraInput:', iaCameraInput);
-  
-  function getCameraInput() {
-    return cameraInputContainer ? cameraInputContainer.querySelector('input[type="file"]') : null;
+  if (!modal || !loading || !results || !preview || !csrfToken) {
+    alert('Error: No se pudo inicializar el análisis');
+    return;
   }
   
-  if (btnAnalizarIA) {
-    console.log('Event listener agregado al botón IA');
-    btnAnalizarIA.addEventListener('click', function(e) {
-      console.log('Click en botón IA detectado');
-      e.preventDefault();
-      
-      // Buscar foto existente en el preview
-      var previewImages = previewContainer ? previewContainer.querySelectorAll('img') : [];
-      
-      // Si hay fotos en el preview, usar la primera
-      if (previewImages.length > 0) {
-        var img = previewImages[0];
-        if (img.src) {
-          analizarImagenDesdeSrc(img.src);
-          return;
-        }
-      }
-      
-      // Si hay fotos en los inputs, usar la primera
-      var fotosFiles = fotosInput ? fotosInput.files : null;
-      if (fotosFiles && fotosFiles.length > 0) {
-        var file = fotosFiles[0];
-        var reader = new FileReader();
-        reader.onload = function(event) {
-          analizarImagenDesdeSrc(event.target.result);
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
-      
-      // Si hay fotos de cámara, usar la primera
-      var cameraInput = getCameraInput();
-      var cameraFiles = cameraInput ? cameraInput.files : null;
-      if (cameraFiles && cameraFiles.length > 0) {
-        var file = cameraFiles[0];
-        var reader = new FileReader();
-        reader.onload = function(event) {
-          analizarImagenDesdeSrc(event.target.result);
-        };
-        reader.readAsDataURL(file);
-        return;
-      }
-      
-      // Si no hay fotos, abrir la cámara
-      console.log('iaCameraInput:', iaCameraInput);
-      if (iaCameraInput) {
-        console.log('Clicking iaCameraInput');
-        iaCameraInput.click();
-      } else {
-        console.error('iaCameraInput no encontrado');
-      }
-    });
-  }
+  modal.classList.remove('hidden');
+  loading.classList.remove('hidden');
+  results.classList.add('hidden');
+  document.getElementById('iaError').classList.add('hidden');
   
-  // Manejar el input de cámara para análisis
-  if (iaCameraInput) {
-    iaCameraInput.addEventListener('change', function(e) {
-      if (e.target.files && e.target.files[0]) {
-        var file = e.target.files[0];
-        var reader = new FileReader();
-        reader.onload = function(event) {
-          analizarImagenDesdeSrc(event.target.result);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
+  preview.innerHTML = '<img src="' + src + '" class="max-h-48 mx-auto rounded-lg">';
   
-  function analizarImagenDesdeSrc(src) {
-    console.log('analizarImagenDesdeSrc llamado con src:', src ? src.substring(0, 50) + '...' : 'vacío');
-    var modal = document.getElementById('iaModal');
-    var loading = document.getElementById('iaLoading');
-    var results = document.getElementById('iaResults');
-    var preview = document.getElementById('iaImagePreview');
-    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  fetch('/ia/analyze', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'X-CSRF-Token': csrfToken
+    },
+    body: 'image_data=' + encodeURIComponent(src)
+  })
+  .then(function(response) { return response.json(); })
+  .then(function(data) {
+    loading.classList.add('hidden');
+    results.classList.remove('hidden');
     
-    if (!modal || !loading || !results || !preview || !csrfToken) {
-      alert('Error: No se pudo inicializar el análisis');
+    if (data.error) {
+      document.getElementById('iaError').querySelector('p').textContent = data.error;
+      document.getElementById('iaError').classList.remove('hidden');
       return;
     }
     
-    modal.classList.remove('hidden');
-    loading.classList.remove('hidden');
-    results.classList.add('hidden');
+    var nombreField = document.querySelector('input[name="producto[nombre]"]');
+    var descripcionField = document.querySelector('textarea[name="producto[descripcion]"]');
+    var estadoField = document.querySelector('select[name="producto[estado]"]');
+    var categoriaField = document.querySelector('select[name="producto[categoria_id]"]');
+    
+    if (data.descripcion && descripcionField) {
+      descripcionField.value = data.descripcion;
+    }
+    
+    if (data.palabras_clave && nombreField && nombreField.value === '') {
+      var palabras = data.palabras_clave.slice(0, 4);
+      if (palabras.length > 0) {
+        nombreField.value = palabras.join(' - ');
+      }
+    }
+    
+    if (data.tipo_producto && nombreField) {
+      if (nombreField.value === '') {
+        nombreField.value = data.tipo_producto;
+      }
+    }
+    
+    if (data.estado && estadoField) {
+      for (var i = 0; i < estadoField.options.length; i++) {
+        if (estadoField.options[i].value === data.estado) {
+          estadoField.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    
+    if (data.categoria_sugerida && categoriaField) {
+      for (var i = 0; i < categoriaField.options.length; i++) {
+        if (categoriaField.options[i].text.toLowerCase().includes(data.categoria_sugerida.toLowerCase())) {
+          categoriaField.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    
     document.getElementById('iaError').classList.add('hidden');
+    alert('Análisis completado. Los campos han sido llenados.');
     
-    preview.innerHTML = '<img src="' + src + '" class="max-h-48 mx-auto rounded-lg">';
-    
-    fetch('/ia/analyze', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'X-CSRF-Token': csrfToken
-      },
-      body: 'image_data=' + encodeURIComponent(src)
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-      loading.classList.add('hidden');
-      results.classList.remove('hidden');
+    setTimeout(function() {
+      modal.classList.add('hidden');
+    }, 1000);
+  })
+  .catch(function(err) {
+    loading.classList.add('hidden');
+    document.getElementById('iaError').querySelector('p').textContent = 'Error de red: ' + err.message;
+    document.getElementById('iaError').classList.remove('hidden');
+  });
+}
+
+function analizarFotoIA() {
+  console.log('analizarFotoIA llamada');
+  
+  // 1. Buscar foto en el preview
+  var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
+  var previewImages = previewContainer ? previewContainer.querySelectorAll('img') : [];
+  
+  if (previewImages.length > 0 && previewImages[0].src) {
+    console.log('Usando preview:', previewImages[0].src.substring(0, 50));
+    analizarImagenDesdeSrc(previewImages[0].src);
+    return;
+  }
+  
+  // 2. Buscar en inputs
+  var fotoInputs = document.querySelectorAll('input[name="producto[fotos][]"]');
+  console.log('Inputs encontrados:', fotoInputs.length);
+  
+  for (var i = 0; i < fotoInputs.length; i++) {
+    var input = fotoInputs[i];
+    if (input.files && input.files.length > 0) {
+      var file = input.files[0];
+      console.log('Archivo:', file.name);
       
-      if (data.error) {
-        document.getElementById('iaError').querySelector('p').textContent = data.error;
-        document.getElementById('iaError').classList.remove('hidden');
-        return;
-      }
-      
-      var nombreField = document.querySelector('input[name="producto[nombre]"]');
-      var descripcionField = document.querySelector('textarea[name="producto[descripcion]"]');
-      var estadoField = document.querySelector('select[name="producto[estado]"]');
-      var categoriaField = document.querySelector('select[name="producto[categoria_id]"]');
-      
-      if (data.descripcion && descripcionField) {
-        descripcionField.value = data.descripcion;
-      }
-      
-      if (data.tipo_producto && nombreField) {
-        var palabras = data.palabras_clave || [];
-        var nombre = data.tipo_producto;
-        if (palabras.length > 0) {
-          var relevantes = palabras.slice(0, 2).join(' - ');
-          nombre = nombre + ' - ' + relevantes;
-        }
-        if (nombre.length > 50) nombre = nombre.substring(0, 47) + '...';
-        nombreField.value = nombre;
-      }
-      
-      if (data.estado && estadoField) {
-        for (var i = 0; i < estadoField.options.length; i++) {
-          if (estadoField.options[i].value === data.estado) {
-            estadoField.selectedIndex = i;
-            break;
-          }
-        }
-      }
-      
-      if (data.categoria_sugerida && categoriaField) {
-        for (var i = 0; i < categoriaField.options.length; i++) {
-          if (categoriaField.options[i].text.toLowerCase().includes(data.categoria_sugerida.toLowerCase())) {
-            categoriaField.selectedIndex = i;
-            break;
-          }
-        }
-      }
-      
-      document.getElementById('iaError').classList.add('hidden');
-      alert('Análisis completado. Los campos han sido llenados.');
-      
-      setTimeout(function() {
-        modal.classList.add('hidden');
-      }, 1000);
-    })
-    .catch(function(err) {
-      loading.classList.add('hidden');
-      document.getElementById('iaError').querySelector('p').textContent = 'Error de red: ' + err.message;
-      document.getElementById('iaError').classList.remove('hidden');
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        analizarImagenDesdeSrc(event.target.result);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+  }
+  
+  // 3. Abrir cámara
+  console.log('Abriendo cámara');
+  document.getElementById('iaCameraInput').click();
+}
+
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM cargado');
+  
+  // Cerrar modales
+  var closeBtn = document.getElementById('closeIaModal');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function() {
+      document.getElementById('iaModal').classList.add('hidden');
     });
   }
   
-  document.getElementById('closeIaModal').addEventListener('click', function() {
-    document.getElementById('iaModal').classList.add('hidden');
-  });
-  
-  document.getElementById('btnCancelarIA').addEventListener('click', function() {
-    document.getElementById('iaModal').classList.add('hidden');
-  });
+  var cancelBtn = document.getElementById('btnCancelarIA');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function() {
+      document.getElementById('iaModal').classList.add('hidden');
+    });
+  }
 });
 </script>

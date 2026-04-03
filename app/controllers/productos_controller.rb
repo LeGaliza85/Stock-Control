@@ -376,7 +376,7 @@ class ProductosController < ApplicationController
   end
 
   def producto_params
-    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, :etiqueta, :ia_image_data, :fotos => [] ])
+    params.expect(producto: [ :nombre, :descripcion, :precio_compra, :precio_venta, :estado, :categoria_id, :etiqueta, :fotos => [] ])
   end
 
   def crear_notificaciones_nuevo_producto(producto)

@@ -56,17 +56,17 @@
 </div>
 
   <%# Barra de búsqueda %>
-  <div class="mb-4">
-    <%= form_with url: productos_path, method: :get, data: { controller: "search", turbo_frame: "productos" }, class: "flex gap-2", autocomplete: "off" do |f| %>
+  <div class="mb-4 px-2 sm:px-0">
+    <%= form_with url: productos_path, method: :get, data: { controller: "search", turbo_frame: "productos" }, class: "flex flex-col sm:flex-row gap-2", autocomplete: "off" do |f| %>
       <%= f.hidden_field :categoria, value: params[:categoria] %>
       <%= f.hidden_field :estado, value: params[:estado] %>
       <%= f.hidden_field :etiqueta, value: params[:etiqueta] %>
       <%= f.hidden_field :per_page, value: @per_page %>
       <div class="relative flex-1">
-        <%= f.text_field :q, value: params[:q], placeholder: "Buscar en el inventario...", data: { action: "input->search#search" }, id: "searchInput", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] placeholder-[#9C8B7A] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" %>
+        <%= f.text_field :q, value: params[:q], placeholder: "Buscar en el inventario...", data: { action: "input->search#search" }, id: "searchInput", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] placeholder-[#9C8B7A] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
         <div id="searchSuggestions" class="hidden absolute top-full left-0 right-0 mt-1 bg-white rounded-lg border border-[#E8E0D4] shadow-lg z-50 max-h-60 overflow-y-auto"></div>
       </div>
-      <%= f.submit "Buscar", class: "inline-flex items-center rounded-lg bg-[#6B5744] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#2C1810] cursor-pointer transition-all duration-200" %>
+      <%= f.submit "Buscar", class: "inline-flex items-center justify-center rounded-lg bg-[#6B5744] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#2C1810] cursor-pointer transition-all duration-200" %>
     <% end %>
   </div>
 

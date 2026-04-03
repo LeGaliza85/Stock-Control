@@ -49,10 +49,10 @@ class Producto < ApplicationRecord
       image_binary = blob.download
       base64_encoded = Base64.strict_encode64(image_binary)
       image_data = "data:#{blob.content_type};base64,#{base64_encoded}"
-      
+
       analyzer = ImageAnalyzerService.new(user)
       embedding_json = analyzer.get_embedding_from_image(image_data)
-      
+
       if embedding_json
         update_column(:embedding, embedding_json)
       end
@@ -63,7 +63,7 @@ class Producto < ApplicationRecord
 
   def registrar_cambios
     return if Rails.env.test?
-    
+
     editor = last_updated_by || user
     return unless editor.present?
 
@@ -117,7 +117,7 @@ class Producto < ApplicationRecord
     end
 
     productos_with_embedding = where("embedding IS NOT NULL AND embedding != ''")
-    
+
     return [] unless productos_with_embedding.any?
 
     scored = productos_with_embedding.map do |p|
@@ -130,10 +130,11 @@ class Producto < ApplicationRecord
       end
     end
 
-    scored.select { |s| s[:score] > 0.8 }
-          .sort_by { |s| -s[:score] }
-          .first(limit)
-          .map { |s| s[:producto] }
+    scored
+      .select { |s| s[:score] > 0.8 }
+      .sort_by { |s| -s[:score] }
+      .first(limit)
+      .map { |s| s[:producto] }
   end
 
   def self.cosine_similarity(a, b)
@@ -151,24 +152,24 @@ class Producto < ApplicationRecord
 
   scope :buscar, ->(termino) {
     return all if termino.blank?
-    
+
     terminos = termino.gsub(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/, " ")
       .split
       .reject(&:blank?)
       .uniq
       .first(10)
-    
+
     return all if terminos.empty?
-    
+
     conditions = []
     params = {}
-    
+
     terminos.each_with_index do |term, index|
       pattern = "%#{term}%"
       conditions << "(productos.nombre LIKE :p#{index} OR productos.descripcion LIKE :p#{index} OR categorias.nombre LIKE :p#{index} OR productos.codigo LIKE :p#{index})"
       params["p#{index}".to_sym] = pattern
     end
-    
+
     left_joins(:categoria).where(conditions.join(" OR "), params).order("productos.created_at DESC")
   }
 

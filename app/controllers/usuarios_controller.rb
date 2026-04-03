@@ -140,8 +140,8 @@ class UsuariosController < ApplicationController
   def switch
     user = User.find(params[:id])
 
-    # If target is not a visitor, require password
-    unless user.visitante?
+    # If current user is a visitor, require password of target user
+    if current_user.visitante?
       unless user.authenticate(params[:password])
         render json: { success: false, error: "Contraseña incorrecta" }, status: :unauthorized
         return
