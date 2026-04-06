@@ -1,0 +1,8 @@
+Esta app ha sido construida sin prestar nada de atencion a la calidad del codigo, ni a la legibilidad ni buenas practicas... Además está usando scripts en linea dentro del HTML. En breves la applicación será completamente inmantenible.
+
+Necesito que analices toda la app por fases e implementes mejoras incrementales:
+- Organizar y mover los scripts JS a archivos independientes
+- Refactorizar los controladores Rails
+- Mejorar el código implementando buenas prácticas
+- Mejorar el performance de las queries de base de datos si detectas alguna inconsistencia
+- Mejorar la UI/UX (Responsive)
