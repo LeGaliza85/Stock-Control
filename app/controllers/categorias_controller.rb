@@ -1,5 +1,6 @@
 class CategoriasController < ApplicationController
-  before_action :set_categoria, only: [ :edit, :update, :destroy ]
+  before_action :require_no_visitante, only: [:new, :create, :edit, :update, :destroy, :quick_create]
+  before_action :set_categoria, only: [:edit, :update, :destroy]
 
   def index
     @categorias = Categoria.left_joins(:productos)

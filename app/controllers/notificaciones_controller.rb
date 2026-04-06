@@ -10,15 +10,13 @@ class NotificacionesController < ApplicationController
   end
 
   def marcar_todas_leidas
-    current_user.notificaciones.no_leidas.each do |n|
-      n.marcar_como_leida!
-    end
-    redirect_to request.referer || productos_path
+    current_user.notificaciones.no_leidas.update_all(leida: true, updated_at: Time.current)
+    redirect_to request.referer || productos_path, notice: "Todas las notificaciones marcadas como leídas."
   end
 
   def eliminar_todas
     current_user.notificaciones.destroy_all
-    redirect_to request.referer || productos_path, notice: "Notificaciones eliminadas."
+    redirect_to request.referer || productos_path, notice: "Todas las notificaciones eliminadas."
   end
 
   def eliminar_leidas

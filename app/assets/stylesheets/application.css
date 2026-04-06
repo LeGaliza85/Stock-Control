@@ -150,3 +150,43 @@ textarea::placeholder {
   font-size: 0.5rem;
   color: var(--accent);
 }
+
+.font-display {
+  font-family: 'Playfair Display', serif;
+}
+
+.mobile-drawer {
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+.mobile-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  pointer-events: none;
+}
+.mobile-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fab-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.fab-button svg {
+  width: 28px;
+  height: 28px;
+}

@@ -1,6 +1,5 @@
 class RegistrationsController < ApplicationController
   allow_unauthenticated_access
-  skip_before_action :verify_authenticity_token, only: :create
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_registration_path, alert: "Intenta de nuevo más tarde." }
 
   def new

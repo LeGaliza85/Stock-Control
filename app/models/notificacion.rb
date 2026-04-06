@@ -1,9 +1,10 @@
 class Notificacion < ApplicationRecord
-  self.table_name = 'notificaciones'
-  
+  self.table_name = "notificaciones"
+
   belongs_to :user
   belongs_to :producto
 
+  validates :user_id, :producto_id, presence: true
   validates :user_id, uniqueness: { scope: :producto_id, message: "ya tiene notificación para este producto" }
 
   scope :no_leidas, -> { where(leida: false).order(created_at: :desc) }

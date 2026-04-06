@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_30_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -132,11 +132,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_30_030000) do
     t.index ["last_updated_by_id"], name: "index_productos_on_last_updated_by_id"
     t.index ["user_id", "created_at"], name: "index_productos_on_user_id_and_created_at"
     t.index ["user_id"], name: "index_productos_on_user_id"
-  end
-
-  create_table "productos_fts", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
   end
 
   create_table "sessions", force: :cascade do |t|

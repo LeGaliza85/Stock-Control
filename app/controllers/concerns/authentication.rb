@@ -68,4 +68,10 @@ module Authentication
         redirect_to productos_path, alert: "No tienes permiso para acceder a esta función."
       end
     end
+
+    def require_admin
+      unless current_user&.admin?
+        redirect_to productos_path, alert: "No tienes permiso para realizar esta acción."
+      end
+    end
 end

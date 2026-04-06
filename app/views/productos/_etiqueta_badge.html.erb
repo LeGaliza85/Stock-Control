@@ -1,0 +1,22 @@
+<%# Etiqueta badge partial - locals: etiqueta:, full_width: true %>
+<%
+  colors = {
+    "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
+    "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
+    "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
+    "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
+  }
+  textos = {
+    "en_venta" => "EN VENTA",
+    "reservado" => "RESERVADO",
+    "vendido" => "VENDIDO",
+    "en_restauracion" => "EN RESTAURACIÓN"
+  }
+  full_width = local_assigns[:full_width].nil? ? true : local_assigns[:full_width]
+  color = colors[etiqueta] || "bg-gray-500"
+  texto = textos[etiqueta] || etiqueta.to_s.humanize
+  width_class = full_width ? "w-full" : ""
+%>
+<div class="<%= width_class %> <%= color %> text-white text-[10px] font-bold text-center py-0.5">
+  <%= texto %>
+</div>

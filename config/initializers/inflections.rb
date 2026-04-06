@@ -19,4 +19,5 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "categoria", "categorias"
   inflect.irregular "etiqueta", "etiquetas"
+  inflect.irregular "historial", "historiales"
 end

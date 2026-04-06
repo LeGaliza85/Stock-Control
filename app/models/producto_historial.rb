@@ -1,6 +1,6 @@
 class ProductoHistorial < ApplicationRecord
   self.table_name = "producto_historiales"
-  
+
   belongs_to :producto
   belongs_to :user
 
