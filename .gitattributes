@@ -7,3 +7,9 @@ db/schema.rb linguist-generated
 vendor/* linguist-vendored
 config/credentials/*.yml.enc diff=rails_credentials
 config/credentials.yml.enc diff=rails_credentials
+
+# Enforce LF line endings for scripts and Dockerfiles so they work inside Linux containers when cloned on Windows
+* text=auto
+bin/* text eol=lf
+Dockerfile* text eol=lf
+*.sh text eol=lf
