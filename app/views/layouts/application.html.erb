@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+  <%= favicon_link_tag "icon.webp", type: "image/webp" %>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
@@ -28,18 +29,18 @@
     }
   </style>
 </head>
-<body class="min-h-screen" style="background-color: var(--bg-cream); color: var(--text-primary); font-family: 'DM Sans', sans-serif; touch-action: manipulation;">
-  
+<body class="min-h-screen" style="background-color: var(--bg-cream); color: var(--text-primary); font-family: 'DM Sans', sans-serif; touch-action: manipulation;" data-controller="mobile-drawer user-switch">
+
   <!-- Overlay oscuro para mobile -->
-  <div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-black/50 z-40" onclick="closeMobileDrawer()"></div>
+  <div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-black/50 z-40" data-mobile-drawer-target="overlay" data-action="click->mobile-drawer#toggle"></div>
 
   <!-- Drawer para móvil (desde la derecha) -->
-  <div id="mobileDrawer" class="mobile-drawer fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-[#2A1E1A] border-l border-[#3D2E28] z-50 overflow-y-auto">
+  <div id="mobileDrawer" data-mobile-drawer-target="drawer" class="mobile-drawer fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-[#2A1E1A] border-l border-[#3D2E28] z-50 overflow-y-auto">
     <div class="p-4 border-b border-[#3D2E28] flex justify-between items-center">
       <span class="text-[#E8E0D4] font-semibold">Menú</span>
-      <button onclick="closeMobileDrawer()" class="text-[#9C8B7A] p-2">✕</button>
+      <button type="button" data-action="click->mobile-drawer#toggle" class="text-[#9C8B7A] p-2 cursor-pointer">✕</button>
     </div>
-    
+
     <!-- Notificaciones en mobile -->
     <% if authenticated? && !current_user.visitante? %>
       <div class="p-4 border-b border-[#3D2E28]">
@@ -49,7 +50,7 @@
             <span class="bg-[#A63D2F] text-white text-xs px-2 py-0.5 rounded-full"><%= current_user.notificaciones.no_leidas.count %></span>
           <% end %>
         </div>
-        
+
         <% if current_user.notificaciones.recientes.any? %>
           <div class="space-y-2 max-h-48 overflow-y-auto">
             <% current_user.notificaciones.recientes.each do |n| %>
@@ -64,13 +65,13 @@
         <% end %>
       </div>
     <% end %>
-    
+
     <!-- Links principales -->
     <div class="p-4 border-b border-[#3D2E28]">
       <a href="<%= productos_path %>" class="block py-3 text-[#E8E0D4] text-sm">Productos</a>
       <a href="<%= categorias_path %>" class="block py-3 text-[#E8E0D4] text-sm">Categorías</a>
     </div>
-    
+
     <!-- Links de admin -->
     <% if authenticated? && !current_user.visitante? %>
       <div class="p-4 border-b border-[#3D2E28]">
@@ -81,25 +82,23 @@
         <% end %>
       </div>
     <% end %>
-    
+
     <!-- Cambiar cuenta -->
     <% if authenticated? %>
       <div class="p-4 border-b border-[#3D2E28]">
         <div class="text-[#9C8B7A] text-xs mb-2">Cambiar a:</div>
         <% User.order(:nombre).each do |u| %>
           <% next if u.id == current_user.id %>
-          <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" class="switch-user-btn block w-full text-left py-3 text-[#E8E0D4] text-sm"><%= u.nombre %></button>
+          <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-action="click->user-switch#switch" class="switch-user-btn block w-full text-left py-3 text-[#E8E0D4] text-sm cursor-pointer"><%= u.nombre %></button>
         <% end %>
       </div>
-      
+
       <!-- Usuario actual y salir -->
       <div class="p-4">
         <div class="text-[#E8E0D4] text-sm mb-2"><%= current_user.nombre %></div>
-        <form action="<%= session_path %>" method="post">
-          <input type="hidden" name="_method" value="delete">
-          <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-          <button type="submit" class="w-full text-left py-3 text-[#9C8B7A] text-sm">Salir</button>
-        </form>
+        <%= button_to session_path, method: :delete, class: "w-full text-left py-3 text-[#9C8B7A] text-sm cursor-pointer" do %>
+          Salir
+        <% end %>
       </div>
     <% end %>
   </div>
@@ -123,225 +122,116 @@
 
         <!-- Derecha: Notificaciones + Hamburguesa (mobile) + Menu/Nombre -->
         <div class="flex items-center gap-2 flex-shrink-0">
-          <!-- Botón notificaciones - siempre visible si tiene notificaciones -->
-          <% if authenticated? && !current_user.visitante? && current_user.notificaciones.no_leidas.any? %>
-            <button id="notifBtn" onclick="toggleNotificaciones(event)" class="flex items-center gap-1 bg-transparent border border-[#E8E0D4] text-[#E8E0D4] px-2 py-1 rounded-md text-xs relative">
-              Notif
-              <span class="absolute -top-2 -right-2 bg-[#A63D2F] text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center"><%= current_user.notificaciones.no_leidas.count %></span>
-            </button>
+          <!-- Dropdown notificaciones (desktop) -->
+          <% if authenticated? && !current_user.visitante? %>
+            <div data-controller="dropdown" class="relative">
+              <button type="button" data-action="click->dropdown#toggle" class="flex items-center gap-1 bg-transparent border border-[#E8E0D4] text-[#E8E0D4] px-2 py-1 rounded-md text-xs relative cursor-pointer">
+                Notif
+                <% if current_user.notificaciones.no_leidas.any? %>
+                  <span class="absolute -top-2 -right-2 bg-[#A63D2F] text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center"><%= current_user.notificaciones.no_leidas.count %></span>
+                <% end %>
+              </button>
+
+              <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-80 max-h-96 overflow-y-auto z-50 shadow-xl">
+                <div class="p-3 border-b border-[#3D2E28] flex justify-between items-center sticky top-0 bg-[#2A1E1A] z-10">
+                  <span class="text-[#E8E0D4] font-semibold text-sm">Notificaciones</span>
+                  <div class="flex gap-2">
+                    <% if current_user.notificaciones.leidas.any? %>
+                      <%= button_to eliminar_leidas_notificaciones_path, method: :delete, data: { turbo_confirm: "¿Eliminar notificaciones leídas?" }, class: "text-[#9C8B7A] text-xs bg-transparent border-none cursor-pointer" do %>
+                        Eliminar vistas
+                      <% end %>
+                    <% end %>
+                    <% if current_user.notificaciones.any? %>
+                      <%= button_to eliminar_todas_notificaciones_path, method: :delete, data: { turbo_confirm: "¿Eliminar todas las notificaciones?" }, class: "text-[#A63D2F] text-xs bg-transparent border-none cursor-pointer" do %>
+                        Eliminar todas
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+                <div>
+                  <% if current_user.notificaciones.recientes.any? %>
+                    <% current_user.notificaciones.recientes.each do |n| %>
+                      <div class="p-3 border-b border-[#3D2E28] <%= n.leida ? 'opacity-60' : 'bg-[#3D2E28]' %> hover:bg-[#3D2E28] transition-colors">
+                        <div class="flex justify-between items-start">
+                          <a href="<%= producto_path(n.producto) %>" class="text-[#E8E0D4] text-sm flex-1 no-underline">
+                            <div class="font-medium"><%= n.producto.nombre %></div>
+                            <div class="text-[#9C8B7A] text-xs"><%= n.tipo == 'nuevo_producto' ? 'Nuevo producto' : n.tipo %> - <%= n.created_at.strftime("%d/%m %H:%M") %></div>
+                          </a>
+                          <% unless n.leida %>
+                            <%= button_to marcar_leida_notificacione_path(n), method: :post, class: "ml-2 text-[#9C8B7A] bg-transparent border-none cursor-pointer p-1 hover:text-white" do %>
+                              ✓
+                            <% end %>
+                          <% end %>
+                        </div>
+                      </div>
+                    <% end %>
+                  <% else %>
+                    <div class="p-4 text-center text-[#9C8B7A] text-sm">Sin notificaciones</div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
           <% end %>
-          
+
           <!-- Botón hamburguesa (solo mobile) -->
-          <button onclick="openMobileDrawer()" class="sm:hidden p-2 text-[#E8E0D4] text-xl leading-none">☰</button>
-          
-          <!-- Menu + Nombre (siempre visible) -->
+          <button type="button" data-action="click->mobile-drawer#toggle" class="sm:hidden p-2 text-[#E8E0D4] text-xl leading-none cursor-pointer">☰</button>
+
+          <!-- Menu Desktop -->
           <% if authenticated? %>
-            <div class="flex items-center gap-2">
-              <button id="headerMainBtn" onclick="toggleHeaderMainMenu(event)" class="bg-transparent border border-[#E8E0D4] text-[#E8E0D4] px-3 py-1 rounded-md text-xs">Menu</button>
-              <a href="<%= gestionar_usuarios_path %>" class="px-3 py-1 rounded-md border border-[#E8E0D4] bg-transparent text-[#B8860B] font-semibold text-xs hover:bg-[#3D2E28]">
-                <%= current_user.nombre %>
-              </a>
+            <div data-controller="dropdown" class="relative hidden sm:block">
+              <div class="flex items-center gap-2">
+                <button type="button" data-action="click->dropdown#toggle" class="bg-transparent border border-[#E8E0D4] text-[#E8E0D4] px-3 py-1 rounded-md text-xs cursor-pointer hover:bg-white/10">Menu</button>
+                <div data-controller="dropdown" class="relative">
+                  <button type="button" data-action="click->dropdown#toggle" class="px-3 py-1 rounded-md border border-[#E8E0D4] bg-transparent text-[#B8860B] font-semibold text-xs hover:bg-[#3D2E28] cursor-pointer">
+                    <%= current_user.nombre %>
+                  </button>
+
+                  <!-- Dropdown Usuario -->
+                  <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-64 z-50 p-0 shadow-xl">
+                    <div class="px-4 py-2 border-b border-[#3D2E28]">
+                      <span class="text-[#9C8B7A] text-xs">Cambiar a:</span>
+                    </div>
+                    <% User.order(:nombre).each do |u| %>
+                      <% next if u.id == current_user.id %>
+                      <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-action="click->user-switch#switch" class="switch-user-btn w-full text-left px-4 py-2 bg-transparent border-none text-[#E8E0D4] text-sm cursor-pointer hover:bg-[#3D2E28]"><%= u.nombre %></button>
+                    <% end %>
+                    <div class="border-t border-[#3D2E28] my-2"></div>
+                    <% if !current_user.visitante? %>
+                      <a href="<%= new_usuario_path %>" class="block px-4 py-2 text-[#B8860B] text-sm no-underline hover:bg-[#3D2E28] transition-colors">+ Nuevo usuario</a>
+                      <% if current_user.admin? %>
+                        <a href="<%= gestionar_usuarios_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Gestionar usuarios</a>
+                      <% end %>
+                    <% end %>
+                    <div class="border-t border-[#3D2E28] my-2"></div>
+                    <%= button_to session_path, method: :delete, class: "w-full text-left px-4 py-2 bg-transparent border-none text-[#9C8B7A] text-sm cursor-pointer hover:bg-[#3D2E28] transition-colors" do %>
+                      Salir
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dropdown Menu Principal -->
+              <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-48 z-50 shadow-xl">
+                <a href="<%= productos_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Productos</a>
+                <a href="<%= categorias_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Categorías</a>
+                <% if !current_user.visitante? %>
+                  <a href="<%= config_ia_path %>" class="block px-4 py-2 text-[#B8860B] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Configuración IA</a>
+                  <% if current_user.admin? %>
+                    <a href="<%= usuarios_registrados_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Usuarios registrados</a>
+                  <% end %>
+                <% end %>
+              </div>
             </div>
           <% else %>
             <a href="<%= new_session_path %>" class="text-[#E8E0D4] text-sm no-underline">Iniciar sesión</a>
           <% end %>
         </div>
       </div>
-
-      <!-- Dropdown de notificaciones (desktop) -->
-      <% if authenticated? && !current_user.visitante? %>
-        <div id="notifDropdown" class="hidden absolute right-4 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-80 max-h-96 overflow-y-auto z-50">
-          <div class="p-3 border-b border-[#3D2E28] flex justify-between items-center">
-            <span class="text-[#E8E0D4] font-semibold text-sm">Notificaciones</span>
-            <div class="flex gap-2">
-              <% if current_user.notificaciones.leidas.any? %>
-                <form action="<%= eliminar_leidas_notificaciones_path %>" method="post" onsubmit="return confirm('¿Eliminar notificaciones leídas?');">
-                  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                  <input type="hidden" name="_method" value="delete">
-                  <button type="submit" class="text-[#9C8B7A] text-xs bg-transparent border-none cursor-pointer">Eliminar vistas</button>
-                </form>
-              <% end %>
-              <% if current_user.notificaciones.any? %>
-                <form action="<%= eliminar_todas_notificaciones_path %>" method="post" onsubmit="return confirm('¿Eliminar todas?');">
-                  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                  <input type="hidden" name="_method" value="delete">
-                  <button type="submit" class="text-[#A63D2F] text-xs bg-transparent border-none cursor-pointer">Eliminar todas</button>
-                </form>
-              <% end %>
-            </div>
-          </div>
-          <div>
-            <% if current_user.notificaciones.recientes.any? %>
-              <% current_user.notificaciones.recientes.each do |n| %>
-                <div class="p-3 border-b border-[#3D2E28] <%= n.leida ? 'opacity-60' : 'bg-[#3D2E28]' %>">
-                  <div class="flex justify-between items-start">
-                    <a href="<%= producto_path(n.producto) %>" class="text-[#E8E0D4] text-sm flex-1 no-underline">
-                      <div class="font-medium"><%= n.producto.nombre %></div>
-                      <div class="text-[#9C8B7A] text-xs"><%= n.tipo == 'nuevo_producto' ? 'Nuevo producto' : n.tipo %> - <%= n.created_at.strftime("%d/%m %H:%M") %></div>
-                    </a>
-                    <% unless n.leida %>
-                      <form action="<%= marcar_leida_notificacione_path(n) %>" method="post" class="ml-2">
-                        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                        <button type="submit" class="text-[#9C8B7A] bg-transparent border-none cursor-pointer p-1">✓</button>
-                      </form>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            <% else %>
-              <div class="p-4 text-center text-[#9C8B7A] text-sm">Sin notificaciones</div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
     </nav>
   </header>
-
-  <!-- Dropdown Menu (desktop) -->
-  <% if authenticated? %>
-    <div id="headerMainMenuDropdown" class="hidden absolute right-4 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-48 z-50">
-      <a href="<%= productos_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline">Productos</a>
-      <a href="<%= categorias_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline">Categorías</a>
-      <% if !current_user.visitante? %>
-        <a href="<%= config_ia_path %>" class="block px-4 py-2 text-[#B8860B] text-sm no-underline">Configuración IA</a>
-        <% if current_user.admin? %>
-          <a href="<%= usuarios_registrados_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline">Usuarios registrados</a>
-        <% end %>
-      <% end %>
-    </div>
-  <% end %>
-
-  <!-- Dropdown usuario (desktop) -->
-  <% if authenticated? %>
-    <div id="desktopUserDropdown" class="hidden fixed right-4 top-24 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-64 z-50 p-0">
-      <div class="px-4 py-2 border-b border-[#3D2E28]">
-        <span class="text-[#9C8B7A] text-xs">Cambiar a:</span>
-      </div>
-      <% User.order(:nombre).each do |u| %>
-        <% next if u.id == current_user.id %>
-        <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" class="switch-user-btn w-full text-left px-4 py-2 bg-transparent border-none text-[#E8E0D4] text-sm"><%= u.nombre %></button>
-      <% end %>
-      <div class="border-t border-[#3D2E28] my-2"></div>
-      <% if !current_user.visitante? %>
-        <a href="<%= new_usuario_path %>" class="block px-4 py-2 text-[#B8860B] text-sm no-underline">+ Nuevo usuario</a>
-        <% if current_user.admin? %>
-          <a href="<%= gestionar_usuarios_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline">Gestionar usuarios</a>
-        <% end %>
-      <% end %>
-      <div class="border-t border-[#3D2E28] my-2"></div>
-      <form action="<%= session_path %>" method="post" class="p-0 m-0">
-        <input type="hidden" name="_method" value="delete">
-        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <button type="submit" class="w-full text-left px-4 py-2 bg-transparent border-none text-[#9C8B7A] text-sm">Salir</button>
-      </form>
-    </div>
-  <% end %>
 
   <main class="container mx-auto px-4 py-8">
     <%= yield %>
   </main>
-
-  <script>
-    // Mobile drawer functions
-    function openMobileDrawer() {
-      document.getElementById('mobileDrawer').classList.add('open');
-      document.getElementById('mobileOverlay').classList.add('open');
-      document.body.style.overflow = 'hidden';
-    }
-    
-    function closeMobileDrawer() {
-      document.getElementById('mobileDrawer').classList.remove('open');
-      document.getElementById('mobileOverlay').classList.remove('open');
-      document.body.style.overflow = '';
-    }
-    
-    // Desktop dropdown functions
-    function toggleHeaderMainMenu(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var el = document.getElementById('headerMainMenuDropdown');
-      if (el) el.classList.toggle('hidden');
-    }
-    
-    function toggleDesktopUserMenu(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var el = document.getElementById('desktopUserDropdown');
-      if (el) el.classList.toggle('hidden');
-    }
-    
-    function toggleNotificaciones(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var el = document.getElementById('notifDropdown');
-      if (el) el.classList.toggle('hidden');
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(ev) {
-      // Close header main menu
-      var mh = document.getElementById('headerMainMenuDropdown');
-      var btn = document.getElementById('headerMainBtn');
-      if (mh && !mh.contains(ev.target) && btn && !btn.contains(ev.target)) {
-        mh.classList.add('hidden');
-      }
-      
-      // Close desktop user dropdown
-      var du = document.getElementById('desktopUserDropdown');
-      var hu = document.getElementById('headerUsername');
-      if (du && !du.contains(ev.target) && hu && !hu.contains(ev.target)) {
-        du.classList.add('hidden');
-      }
-      
-      // Close notifications dropdown
-      var nd = document.getElementById('notifDropdown');
-      var nb = document.getElementById('notifBtn');
-      if (nd && !nd.contains(ev.target) && nb && !nb.contains(ev.target)) {
-        nd.classList.add('hidden');
-      }
-      
-      // Handle switch user buttons
-      if (ev.target.classList.contains('switch-user-btn')) {
-        var btn = ev.target;
-        var userId = btn.dataset.userId;
-        var userName = btn.dataset.userName;
-        
-        var password = prompt("Ingresa la contraseña de " + userName + ":");
-        if (password === null || password === '') return;
-        
-        btn.disabled = true;
-        btn.textContent = 'Cambiando...';
-        
-        var token = document.querySelector('meta[name="csrf-token"]').content;
-        
-        fetch('/usuarios/switch.json', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRF-Token': token,
-            'Accept': 'application/json'
-          },
-          body: new URLSearchParams({ id: userId, password: password }).toString()
-        }).then(function(resp){
-          if (!resp.ok) throw new Error('HTTP ' + resp.status);
-          return resp.json();
-        }).then(function(data){
-          if (data && data.success) {
-            closeMobileDrawer();
-            setTimeout(function(){ location.reload(); }, 100);
-          } else {
-            btn.disabled = false;
-            btn.textContent = userName;
-            alert(data.error || 'Error cambiando usuario');
-          }
-        }).catch(function(err) {
-          btn.disabled = false;
-          btn.textContent = userName;
-          console.error('Switch error:', err);
-          alert('Error de red: ' + err.message);
-        });
-      }
-    });
-  </script>
 </body>
 </html>

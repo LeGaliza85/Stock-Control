@@ -1,11 +1,16 @@
- require "clip"
+# frozen_string_literal: true
 
- Rails.logger.info "Pre-cargando modelo CLIP..."
- $clip_model = nil
+require "clip"
 
- begin
-   $clip_model = Clip::Model.new
-   Rails.logger.info "Modelo CLIP cargado correctamente."
- rescue => e
-   Rails.logger.warn "No se pudo pre-cargar CLIP: #{e.message}. Se cargará en el primer uso."
- end
+Rails.application.config.to_prepare do
+  # Lazy-load the model, but we can trigger initialization here so it downloads
+  # the model files if they don't exist and loads them into memory.
+  # It takes a few seconds on boot but makes the first web request fast.
+  begin
+    Rails.logger.info "Pre-loading CLIP model..."
+    ImageEmbeddingService.clip_model
+    Rails.logger.info "CLIP model loaded successfully."
+  rescue => e
+    Rails.logger.warn "Failed to pre-load CLIP model: #{e.message}"
+  end
+end

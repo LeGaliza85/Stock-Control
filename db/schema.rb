@@ -10,7 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_06_222807) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
+  enable_extension "unaccent"
+  enable_extension "vector"
+
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -56,16 +62,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
     t.integer "requests_this_month", default: 0
     t.integer "requests_today", default: 0
     t.datetime "updated_at", null: false
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.index ["user_id", "ia_service"], name: "index_ia_usages_on_user_id_and_ia_service", unique: true
   end
 
   create_table "notas", force: :cascade do |t|
-    t.text "contenido", limit: 1000
+    t.text "contenido"
     t.datetime "created_at", null: false
-    t.integer "producto_id", null: false
+    t.bigint "producto_id", null: false
     t.datetime "updated_at", null: false
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.index ["producto_id", "created_at"], name: "index_notas_on_producto_id_and_created_at"
     t.index ["producto_id"], name: "index_notas_on_producto_id"
     t.index ["user_id", "created_at"], name: "index_notas_on_user_id_and_created_at"
@@ -75,10 +81,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
   create_table "notificaciones", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "leida", default: false
-    t.integer "producto_id", null: false
+    t.bigint "producto_id", null: false
     t.string "tipo", default: "nuevo_producto", null: false
     t.datetime "updated_at", null: false
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.index ["created_at"], name: "index_notificaciones_on_created_at"
     t.index ["leida"], name: "index_notificaciones_on_leida"
     t.index ["producto_id"], name: "index_notificaciones_on_producto_id"
@@ -88,9 +94,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
   create_table "producto_historiales", force: :cascade do |t|
     t.string "campo"
     t.datetime "created_at"
-    t.integer "producto_id", null: false
+    t.bigint "producto_id", null: false
     t.text "resumen"
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.text "valor_anterior"
     t.text "valor_nuevo"
     t.index ["producto_id", "created_at"], name: "index_producto_historiales_on_producto_id_and_created_at"
@@ -99,8 +105,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
   end
 
   create_table "producto_vistos", force: :cascade do |t|
-    t.integer "producto_id", null: false
-    t.integer "user_id", null: false
+    t.bigint "producto_id", null: false
+    t.bigint "user_id", null: false
     t.datetime "visto_at"
     t.index ["producto_id", "visto_at"], name: "index_producto_vistos_on_producto_id_and_visto_at"
     t.index ["producto_id"], name: "index_producto_vistos_on_producto_id"
@@ -110,19 +116,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
   end
 
   create_table "productos", force: :cascade do |t|
-    t.integer "categoria_id", null: false
+    t.bigint "categoria_id", null: false
     t.string "codigo", limit: 20
     t.datetime "created_at", null: false
     t.text "descripcion", null: false
-    t.text "embedding"
+    t.vector "embedding", limit: 512
     t.integer "estado", null: false
     t.integer "etiqueta", default: 0
-    t.integer "last_updated_by_id"
+    t.bigint "last_updated_by_id"
     t.string "nombre", null: false
     t.decimal "precio_compra", precision: 10, scale: 2, null: false
     t.decimal "precio_venta", precision: 10, scale: 2, null: false
     t.datetime "updated_at", null: false
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.index ["categoria_id", "created_at"], name: "index_productos_on_categoria_id_and_created_at"
     t.index ["categoria_id"], name: "index_productos_on_categoria_id"
     t.index ["codigo"], name: "index_productos_on_codigo", unique: true
@@ -139,7 +145,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_120000) do
     t.string "ip_address"
     t.datetime "updated_at", null: false
     t.string "user_agent"
-    t.integer "user_id", null: false
+    t.bigint "user_id", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 

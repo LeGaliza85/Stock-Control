@@ -2,6 +2,11 @@ require 'base64'
 require 'tempfile'
 
 class Producto < ApplicationRecord
+  include PgSearch::Model
+
+  has_neighbors :embedding, dimensions: 512
+  broadcasts_to ->(producto) { "productos" }, inserts_by: :prepend
+
   belongs_to :user
   belongs_to :last_updated_by, class_name: "User", optional: true
   belongs_to :categoria
@@ -30,160 +35,35 @@ class Producto < ApplicationRecord
   validates :precio_compra, :precio_venta, numericality: { greater_than_or_equal_to: 0 }
 
   before_create :generar_codigo
-  after_save :generar_embedding, if: :fotos_changed_or_missing_embedding?
+  after_commit :queue_embedding_generation, on: [:create, :update]
   after_save :registrar_cambios
 
-  def fotos_changed_or_missing_embedding?
-    fotos.attached? && embedding.blank?
-  end
-
-  def generar_embedding
-    return unless fotos.attached?
-
-    embeddings = []
-
-    fotos.each do |foto|
-      begin
-        blob = foto.blob
-        image_binary = blob.download
-        base64_encoded = Base64.strict_encode64(image_binary)
-        image_data = "data:#{blob.content_type};base64,#{base64_encoded}"
-
-        analyzer = ImageAnalyzerService.new(user)
-        embedding_json = analyzer.get_embedding_from_image(image_data)
-        embeddings << JSON.parse(embedding_json) if embedding_json
-      rescue => e
-        Rails.logger.error "Error generando embedding para foto: #{e.message}"
-      end
-    end
-
-    if embeddings.any?
-      update_column(:embedding, embeddings.to_json)
+  def queue_embedding_generation
+    if fotos.attached? && (previous_changes.key?("fotos") || embedding.blank?)
+      GenerateEmbeddingJob.perform_later(id)
     end
   end
 
   def registrar_cambios
-    return if Rails.env.test?
-
-    editor = last_updated_by || user
-    return unless editor.present?
-
-    if saved_change_to_created_at?
-      ProductoHistorial.registrar(self, editor, "creado", nil, "Producto creado", "Producto creado")
-      return
-    end
-
-    return unless previous_changes.present?
-
-    changes_to_track = {
-      "nombre" => :nombre,
-      "precio_compra" => :precio_compra,
-      "precio_venta" => :precio_venta,
-      "estado" => :estado,
-      "etiqueta" => :etiqueta,
-      "categoria_id" => :categoria_id
-    }
-
-    previous_changes.each do |attr, (valor_anterior, valor_nuevo)|
-      campo = attr.to_s
-      next unless changes_to_track.key?(campo)
-
-      if campo == "categoria_id"
-        valor_anterior = Categoria.find_by(id: valor_anterior)&.nombre
-        valor_nuevo = Categoria.find_by(id: valor_nuevo)&.nombre
-      elsif campo == "estado" || campo == "etiqueta"
-        valor_anterior = valor_anterior.to_s if valor_anterior
-        valor_nuevo = valor_nuevo.to_s if valor_nuevo
-      end
-
-      ProductoHistorial.registrar(self, editor, campo, valor_anterior, valor_nuevo)
-    end
-
-    if previous_changes.key?("descripcion")
-      ProductoHistorial.registrar(self, editor, "descripcion", "modificada", "modificada", "Descripción modificada")
-    end
-
-    if fotos.attached? && previous_changes.key?("fotos")
-      ProductoHistorial.registrar(self, editor, "fotos", "cambiadas", "cambiadas", "Fotos actualizadas")
-    end
+    AuditLogService.new(self).call
   end
 
   def self.buscar_por_embedding(embedding_json, limit: 5)
-    return [] if embedding_json.blank?
-
-    begin
-      query_embedding = JSON.parse(embedding_json)
-    rescue
-      return []
-    end
-
-    productos_with_embedding = where("embedding IS NOT NULL AND embedding != ''")
-
-    return [] unless productos_with_embedding.any?
-
-    scored = productos_with_embedding.map do |p|
-      begin
-        stored_embeddings = JSON.parse(p.embedding)
-
-        if stored_embeddings.is_a?(Array) && stored_embeddings.first.is_a?(Array)
-          # array de arrays
-        elsif stored_embeddings.is_a?(Array) && stored_embeddings.first.is_a?(Float)
-          stored_embeddings = [stored_embeddings]
-        else
-          stored_embeddings = [stored_embeddings]
-        end
-
-        best_score = stored_embeddings.map do |emb|
-          cosine_similarity(query_embedding, emb)
-        end.max
-
-        { producto: p, score: best_score }
-      rescue => e
-        Rails.logger.error "Error calculando similitud: #{e.message}"
-        { producto: p, score: 0 }
-      end
-    end
-
-    scored
-      .select { |s| s[:score] > 0.3 }
-      .sort_by { |s| -s[:score] }
-      .first(limit)
+    SimilaritySearchService.buscar(embedding_json, limit: limit)
   end
 
-  def self.cosine_similarity(a, b)
-    return 0 if a.blank? || b.blank?
-    return 0 if a.length != b.length
-
-    dot_product = a.each_with_index.sum { |x, i| x * b[i] }
-    magnitude_a = Math.sqrt(a.sum { |x| x * x })
-    magnitude_b = Math.sqrt(b.sum { |x| x * x })
-
-    return 0 if magnitude_a.zero? || magnitude_b.zero?
-
-    dot_product / (magnitude_a * magnitude_b)
-  end
+  pg_search_scope :pg_search_buscar,
+                  against: [ :nombre, :descripcion, :codigo ],
+                  associated_against: { categoria: :nombre },
+                  ignoring: :accents,
+                  using: {
+                    tsearch: { any_word: true, prefix: true },
+                    trigram: { word_similarity: true }
+                  }
 
   scope :buscar, ->(termino) {
     return all if termino.blank?
-
-    terminos = termino.gsub(/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/, " ")
-      .split
-      .reject(&:blank?)
-      .uniq
-      .first(10)
-
-    return all if terminos.empty?
-
-    conditions = []
-    params = {}
-
-    terminos.each_with_index do |term, index|
-      pattern = "%#{term}%"
-      conditions << "(productos.nombre LIKE :p#{index} OR productos.descripcion LIKE :p#{index} OR categorias.nombre LIKE :p#{index} OR productos.codigo LIKE :p#{index})"
-      params["p#{index}".to_sym] = pattern
-    end
-
-    left_joins(:categoria).where(conditions.join(" OR "), params).order("productos.created_at DESC")
+    pg_search_buscar(termino)
   }
 
   scope :por_categoria, ->(cat) { where(categoria_id: cat) if cat.present? }

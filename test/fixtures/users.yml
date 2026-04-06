@@ -4,8 +4,10 @@ one:
   nombre: User One
   email_address: one@example.com
   password_digest: <%= password_digest %>
+  rol: 2
 
 two:
   nombre: User Two
   email_address: two@example.com
   password_digest: <%= password_digest %>
+  rol: 2

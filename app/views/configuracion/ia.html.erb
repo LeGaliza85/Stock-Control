@@ -20,14 +20,14 @@
       </div>
     <% end %>
 
-    <%= form_with url: ia_config_path, method: :patch, local: true, id: "iaConfigForm" do |f| %>
+    <%= form_with url: ia_config_path, method: :patch, local: true, id: "iaConfigForm", data: { controller: "ia-config" } do |f| %>
       <div class="space-y-6">
         <div>
           <label class="block text-sm font-medium text-[#6B5744] mb-3">Servicio de IA para análisis de imágenes</label>
           <div class="space-y-3">
             <% @ia_services.each do |service| %>
-              <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= service[:id] == @current_service ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4]' %>" data-service="<%= service[:id] %>">
-                <%= f.radio_button :ia_service, service[:id], class: "mt-1 accent-[#B8860B]", checked: service[:id] == @current_service %>
+              <label class="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ia-service-option <%= service[:id] == @current_service ? 'border-[#B8860B] bg-[#F5ECD7]/30' : 'border-[#E8E0D4]' %>" data-service="<%= service[:id] %>" data-ia-config-target="option">
+                <%= f.radio_button :ia_service, service[:id], class: "mt-1 accent-[#B8860B]", data: { action: "change->ia-config#change" }, checked: service[:id] == @current_service %>
                 <div class="flex-1">
                   <div class="flex items-center justify-between">
                     <span class="font-semibold text-[#2C1810]"><%= service[:name] %></span>
@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <div id="geminiModelSelect" class="<%= @current_service == 'gemini' ? '' : 'hidden' %>">
+        <div id="geminiModelSelect" data-ia-config-target="geminiSelect" class="<%= @current_service == 'gemini' ? '' : 'hidden' %>">
           <label class="block text-sm font-medium text-[#6B5744] mb-2">Modelo de Gemini</label>
           <%= f.select :gemini_model, 
               options_for_select(
@@ -77,38 +77,5 @@
     <% end %>
   </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var options = document.querySelectorAll('.ia-service-option');
-  var radios = document.querySelectorAll('input[name="ia_service"]');
-  var geminiSelect = document.getElementById('geminiModelSelect');
 
-  function updateGeminiSelect(serviceId) {
-    if (geminiSelect) {
-      if (serviceId === 'gemini') {
-        geminiSelect.classList.remove('hidden');
-      } else {
-        geminiSelect.classList.add('hidden');
-      }
-    }
-  }
-
-  radios.forEach(function(radio) {
-    radio.addEventListener('change', function() {
-      options.forEach(function(opt) {
-        if (opt.dataset.service === radio.value) {
-          opt.classList.add('border-[#B8860B]', 'bg-[#F5ECD7]/30');
-          opt.classList.remove('border-[#E8E0D4]');
-        } else {
-          opt.classList.remove('border-[#B8860B]', 'bg-[#F5ECD7]/30');
-          opt.classList.add('border-[#E8E0D4]');
-        }
-      });
-      updateGeminiSelect(radio.value);
-    });
-  });
-
-  updateGeminiSelect('<%= @current_service %>');
-});
-</script>
 </div>

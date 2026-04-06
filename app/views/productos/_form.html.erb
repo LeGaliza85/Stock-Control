@@ -1,566 +1,172 @@
-<%= form_with model: @producto, multipart: true, local: true, class: "bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8" do |f| %>
-  <% edit_mode = local_assigns[:edit_mode] || false %>
-  <input type="hidden" id="formEditMode" value="<%= edit_mode %>">
-  <% if @producto.errors.any? %>
-    <div class="bg-[#F4DCDC] border border-[#A63D2F]/30 rounded-lg p-4 mb-8">
-      <h3 class="text-[#A63D2F] font-semibold mb-2">Se encontraron <%= pluralize(@producto.errors.count, "error") %>:</h3>
-      <ul class="list-disc list-inside text-[#A63D2F]/80 text-sm">
-        <% @producto.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <!-- Código del producto (solo lectura) -->
-  <% if @producto.codigo.present? %>
-    <div class="mb-6 p-3 bg-[#F5ECD7] rounded-lg border border-[#E8E0D4]">
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-[#9C8B7A]">Código del producto:</span>
-        <span class="text-sm font-bold text-[#2C1810]"><%= formato_codigo(@producto.codigo) %></span>
-      </div>
-    </div>
-  <% end %>
-
-  <!-- Información básica -->
-  <div class="mb-8">
-    <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Información básica</h2>
-    <div class="space-y-5">
-      <div>
-        <%= f.label :nombre, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.text_field :nombre, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base truncate" %>
-      </div>
-      <div>
-        <%= f.label :descripcion, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.text_area :descripcion, rows: 4, id: "descripcionField", class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
-      </div>
-    </div>
-  </div>
-
-  <div class="border-t border-[#E8E0D4] my-6"></div>
-
-  <!-- Precios -->
-  <div class="mb-8">
-    <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Precios</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-      <div>
-        <%= f.label :precio_compra, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.number_field :precio_compra, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
-      </div>
-      <div>
-        <%= f.label :precio_venta, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.number_field :precio_venta, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
-      </div>
-    </div>
-  </div>
-
-  <div class="border-t border-[#E8E0D4] my-6"></div>
-
-  <!-- Detalles -->
-  <div class="mb-8">
-    <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Detalles</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-      <div>
-        <%= f.label :estado, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.select :estado, Producto.estados.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar estado" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
-      </div>
-      <div>
-        <%= f.label :categoria_id, "Categoría", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.select :categoria_id, Categoria.order(:nombre).pluck(:nombre, :id), { prompt: "Seleccionar categoría" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
-        <p class="mt-1.5 text-xs text-[#9C8B7A]">
-          ¿No encuentras la categoría? <button type="button" onclick="document.getElementById('newCategoriaModal').classList.remove('hidden')" class="text-[#B8860B] hover:text-[#9A7209] underline">Crear nueva</button>
-        </p>
-      </div>
-      <div>
-        <%= f.label :etiqueta, "Etiqueta", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
-        <%= f.select :etiqueta, Producto.etiquetas.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar etiqueta" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
-      </div>
-    </div>
-  </div>
-
-  <div class="border-t border-[#E8E0D4] my-6"></div>
-
-  <!-- Fotografías -->
-  <div class="mb-8" data-controller="photo-preview">
-    <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Fotografías</h2>
-
-    <div class="flex flex-wrap gap-3 mb-3">
-      <button type="button" id="btnTomarFoto" data-action="click->photo-preview#openCamera"
-        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;" onmouseover="this.style.backgroundColor='#9A7209'" onmouseout="this.style.backgroundColor='#B8860B'">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        Tomar foto
-      </button>
-      <div id="cameraInputContainer" class="hidden">
-        <input type="file" id="cameraInput" name="producto[fotos][]" accept="image/*" capture="environment" multiple data-action="change->photo-preview#preview">
-      </div>
-
-      <button type="button" onclick="document.getElementById('fotosInput').click()"
-        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border border-[#E8E0D4] text-[#6B5744] hover:bg-[#F5ECD7]">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        Galería
-      </button>
-      <input type="file" id="fotosInput" name="producto[fotos][]" accept="image/*" multiple class="hidden" data-action="change->photo-preview#preview">
-
-      <button type="button" id="btnAnalizarIA" onclick="analizarFotoIA()"
-        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-        </svg>
-        Analizar con IA
-      </button>
-      <input type="file" id="iaCameraInput" accept="image/*" capture="environment" class="hidden" onchange="if(this.files[0]){var r=new FileReader();r.onload=function(e){analizarImagenDesdeSrc(e.target.result)};r.readAsDataURL(this.files[0])}">
-    </div>
-
-    <div data-photo-preview-target="preview" class="mt-3 flex flex-wrap gap-3 min-h-[20px]"></div>
-    <p data-photo-preview-target="counter" class="hidden mt-2 text-xs font-medium text-[#B8860B]"></p>
-
-    <% if @producto.fotos.attached? %>
-      <div class="mt-3">
-        <p class="text-xs font-medium text-[#6B5744] mb-2">Fotos actuales (<%= @producto.fotos.count %>) - Haz clic en la X para eliminar. Las fotos a borrar se mostrarán con borde rojo:</p>
-        <div class="flex flex-wrap gap-2">
-          <% @producto.fotos.each_with_index do |foto, index| %>
-            <div class="relative foto-item group" data-foto-id="<%= foto.id %>">
-              <%= image_tag foto.variant(resize_to_limit: [100, 100]),
-                  class: "rounded-lg border-2 border-[#E8E0D4] foto-preview" %>
-              <button type="button" 
-                      onclick="eliminarFoto(this, '<%= foto.id %>')"
-                      class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md btn-eliminar"
-                      title="Eliminar foto">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-              <button type="button" 
-                      onclick="cancelarEliminar(this, '<%= foto.id %>')"
-                      class="hidden absolute -top-2 -right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors shadow-md btn-cancelar"
-                      title="Cancelar eliminación">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-              </button>
-              <div class="hidden absolute inset-0 rounded-lg bg-red-500/20 border-2 border-red-500 pointer-events-none foto-marcada"></div>
-            </div>
+<div data-controller="quick-category product-search">
+  <%= form_with model: @producto, multipart: true, local: true, class: "bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8" do |f| %>
+    <% edit_mode = local_assigns[:edit_mode] || false %>
+    <input type="hidden" id="formEditMode" value="<%= edit_mode %>">
+    <% if @producto.errors.any? %>
+      <div class="bg-[#F4DCDC] border border-[#A63D2F]/30 rounded-lg p-4 mb-8">
+        <h3 class="text-[#A63D2F] font-semibold mb-2">Se encontraron <%= pluralize(@producto.errors.count, "error") %>:</h3>
+        <ul class="list-disc list-inside text-[#A63D2F]/80 text-sm">
+          <% @producto.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
           <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Código del producto -->
+    <% if @producto.codigo.present? %>
+      <div class="mb-6 p-3 bg-[#F5ECD7] rounded-lg border border-[#E8E0D4]">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-[#9C8B7A]">Código del producto:</span>
+          <span class="text-sm font-bold text-[#2C1810]"><%= formato_codigo(@producto.codigo) %></span>
         </div>
       </div>
     <% end %>
-    <input type="hidden" name="producto[fotos_a_eliminar]" id="fotos_a_eliminar" value="">
-  </div>
 
-  <div>
-    <%= f.submit "Guardar", type: "submit", class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B8860B] cursor-pointer transition-all duration-200", onclick: "console.log('Submit clicked, fotos_a_eliminar:', document.getElementById('fotos_a_eliminar').value);" %>
-  </div>
-<% end %>
-
-<!-- Modal para crear nueva categoría -->
-<div id="newCategoriaModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
-  <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Nueva Categoría</h3>
-        <button type="button" onclick="document.getElementById('newCategoriaModal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
-          <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-      
-      <form id="quickCreateCategoriaForm">
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Nombre de la categoría</label>
-          <input type="text" id="newCategoriaNombre" name="categoria[nombre]" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" placeholder="Ej: Electrónica" required>
+    <!-- Información básica -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Información básica</h2>
+      <div class="space-y-5">
+        <div>
+          <%= f.label :nombre, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.text_field :nombre, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base truncate" %>
         </div>
+        <div>
+          <%= f.label :descripcion, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.text_area :descripcion, rows: 4, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-[#E8E0D4] my-6"></div>
+
+    <!-- Precios -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Precios</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <%= f.label :precio_compra, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.number_field :precio_compra, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
+        </div>
+        <div>
+          <%= f.label :precio_venta, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.number_field :precio_venta, step: 0.01, min: 0, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-[#E8E0D4] my-6"></div>
+
+    <!-- Detalles -->
+    <div class="mb-8">
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Detalles</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <%= f.label :estado, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.select :estado, Producto.estados.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar estado" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
+        </div>
+        <div>
+          <%= f.label :categoria_id, "Categoría", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.select :categoria_id, Categoria.order(:nombre).pluck(:nombre, :id), { prompt: "Seleccionar categoría" }, { data: { quick_category_target: "select" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" } %>
+          <p class="mt-1.5 text-xs text-[#9C8B7A]">
+            ¿No encuentras la categoría? <button type="button" data-action="click->quick-category#open" class="text-[#B8860B] hover:text-[#9A7209] underline cursor-pointer">Crear nueva</button>
+          </p>
+        </div>
+        <div>
+          <%= f.label :etiqueta, "Etiqueta", class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
+          <%= f.select :etiqueta, Producto.etiquetas.keys.map { |e| [e.humanize, e] }, { prompt: "Seleccionar etiqueta" }, class: "w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200 p-3 text-base" %>
+        </div>
+      </div>
+    </div>
+
+    <div class="border-t border-[#E8E0D4] my-6"></div>
+
+    <!-- Fotografías -->
+    <div class="mb-8" data-controller="photo-preview">
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Fotografías</h2>
+      <div class="flex flex-wrap gap-3 mb-3">
+        <button type="button" data-action="click->photo-preview#openCamera"
+          class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Tomar foto
+        </button>
+        <div id="cameraInputContainer" class="hidden">
+          <input type="file" id="cameraInput" name="producto[fotos][]" accept="image/*" capture="environment" multiple data-action="change->photo-preview#preview">
+        </div>
+        <button type="button" data-action="click->photo-preview#openGallery"
+        class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border border-[#E8E0D4] text-[#6B5744] hover:bg-[#F5ECD7]">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Galería
+        </button>
+        <input type="file" id="fotosInput" name="producto[fotos][]" accept="image/*" multiple class="hidden" data-action="change->photo-preview#preview">
         
-        <div id="categoriaError" class="hidden mb-4 p-3 bg-[#F4DCDC] rounded-lg text-sm text-[#A63D2F]"></div>
-        
+        <button type="button" data-action="click->product-search#openIaModal"
+          class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer transition-all duration-200 border-2 border-[#7C3AED] text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+          </svg>
+          Analizar con IA
+        </button>
+        <input type="file" data-product-search-target="iaFileInput" data-action="change->product-search#onIaFileChange" accept="image/*" capture="environment" class="hidden">
+      </div>
+
+      <div data-photo-preview-target="preview" class="mt-3 flex flex-wrap gap-3 min-h-[20px]"></div>
+      <p data-photo-preview-target="counter" class="hidden mt-2 text-xs font-medium text-[#B8860B]"></p>
+
+      <% if @producto.fotos.attached? %>
+        <div class="mt-3">
+          <p class="text-xs font-medium text-[#6B5744] mb-2">Fotos actuales (<%= @producto.fotos.count %>) - Haz clic en la X para eliminar:</p>
+          <div class="flex flex-wrap gap-2">
+            <% @producto.fotos.each do |foto| %>
+              <div class="relative foto-item group" data-foto-id="<%= foto.id %>">
+                <%= image_tag foto.variant(resize_to_limit: [100, 100]), class: "rounded-lg border-2 border-[#E8E0D4] foto-preview" %>
+                <button type="button" data-action="click->photo-preview#eliminarFotoExistente" data-foto-id='<%= foto.id %>'
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md btn-eliminar">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+                <button type="button" data-action="click->photo-preview#cancelarEliminarFotoExistente" data-foto-id='<%= foto.id %>'
+                  class="hidden absolute -top-2 -right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition-colors shadow-md btn-cancelar">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </button>
+                <div class="hidden absolute inset-0 rounded-lg bg-red-500/20 border-2 border-red-500 pointer-events-none foto-marcada"></div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <input type="hidden" name="producto[fotos_a_eliminar]" data-photo-preview-target="fotosAEliminar" value="">
+    </div>
+
+    <div>
+      <%= f.submit "Guardar", class: "w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all duration-200" %>
+    </div>
+  <% end %>
+
+  <!-- Modal nueva categoría -->
+  <div data-quick-category-target="modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#2C1810]">Nueva Categoría</h3>
+        <button type="button" data-action="click->quick-category#close" class="text-gray-400 hover:text-gray-600">&times;</button>
+      </div>
+      <form data-action="submit->quick-category#submit">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Nombre</label>
+          <input type="text" data-quick-category-target="input" class="w-full rounded-lg border border-[#E8E0D4] p-2.5" required>
+        </div>
+        <div data-quick-category-target="error" class="hidden mb-4 p-2 bg-red-50 text-red-600 text-sm rounded"></div>
         <div class="flex gap-3">
-          <button type="submit" class="flex-1 rounded-lg bg-[#B8860B] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all duration-200">
-            Crear categoría
-          </button>
-          <button type="button" onclick="document.getElementById('newCategoriaModal').classList.add('hidden')" class="flex-1 rounded-lg border border-[#E8E0D4] px-6 py-2.5 text-sm font-medium text-[#6B5744] hover:bg-[#F5ECD7] cursor-pointer transition-all duration-200">
-            Cancelar
-          </button>
+          <button type="submit" class="flex-1 bg-[#B8860B] text-white py-2 rounded-lg font-semibold hover:bg-[#9A7209]">Crear</button>
+          <button type="button" data-action="click->quick-category#close" class="flex-1 border border-[#E8E0D4] py-2 rounded-lg">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
+
+  <%= render "shared/ia_modal", show_fill_form: !edit_mode %>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var categoriaForm = document.getElementById('quickCreateCategoriaForm');
-  if (categoriaForm) {
-    categoriaForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      var nombre = document.getElementById('newCategoriaNombre').value.trim();
-      if (!nombre) return;
-      
-      var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      var errorDiv = document.getElementById('categoriaError');
-      
-      fetch('/categorias/quick_create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRF-Token': csrfToken
-        },
-        body: 'categoria[nombre]=' + encodeURIComponent(nombre)
-      })
-      .then(function(response) { return response.json(); })
-      .then(function(data) {
-        if (data.success) {
-          var select = document.querySelector('select[name="producto[categoria_id]"]');
-          if (select) {
-            var option = document.createElement('option');
-            option.value = data.categoria.id;
-            option.text = data.categoria.nombre;
-            option.selected = true;
-            select.appendChild(option);
-          }
-          document.getElementById('newCategoriaNombre').value = '';
-          document.getElementById('newCategoriaModal').classList.add('hidden');
-        } else {
-          errorDiv.textContent = data.errors ? data.errors.join(', ') : 'Error al crear la categoría';
-          errorDiv.classList.remove('hidden');
-        }
-      })
-      .catch(function(err) {
-        errorDiv.textContent = 'Error de red: ' + err.message;
-        errorDiv.classList.remove('hidden');
-      });
-    });
-  }
-});
-</script>
-
-<!-- Modal de Análisis IA -->
-<div id="iaModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
-  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Análisis de Imagen</h3>
-        <button type="button" id="closeIaModal" class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
-          <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <input type="hidden" id="ia_nombre" value="">
-      <input type="hidden" id="ia_palabras_clave" value="">
-      <input type="hidden" id="ia_tipo_producto" value="">
-
-      <!-- Preview de imagen -->
-      <div id="iaImagePreview" class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center" style="min-height: 150px;">
-        <p class="text-[#9C8B7A] text-sm">Cargando imagen...</p>
-      </div>
-
-      <!-- Loading spinner -->
-      <div id="iaLoading" class="hidden text-center py-8">
-        <div class="relative inline-block w-16 h-16 mb-4">
-          <div class="absolute inset-0 rounded-full border-4 border-[#7C3AED]/20"></div>
-          <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-[#7C3AED] animate-spin"></div>
-          <div class="absolute inset-3 flex items-center justify-center">
-            <svg class="w-6 h-6 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-            </svg>
-          </div>
-        </div>
-        <p class="text-lg font-semibold text-[#2C1810] mb-2">Analizando imagen...</p>
-        <p class="text-sm text-[#6B5744]" id="iaServiceName">Usando Google Gemini</p>
-        <p class="text-xs text-[#9C8B7A] mt-2">Esto puede tardar unos segundos</p>
-      </div>
-
-      <!-- Resultados -->
-      <div id="iaResults" class="hidden">
-        <!-- Confianza -->
-        <div class="mb-4">
-          <div class="flex justify-between items-center mb-1">
-            <span class="text-sm font-medium text-[#6B5744]">Confianza del análisis</span>
-            <span id="iaConfianza" class="text-sm font-bold text-[#2C1810]">0%</span>
-          </div>
-          <div class="w-full bg-[#E8E0D4] rounded-full h-2">
-            <div id="iaConfianzaBar" class="bg-[#B8860B] h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-          </div>
-        </div>
-
-        <!-- Descripción -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Descripción detectada</label>
-          <textarea id="iaDescripcion" rows="4" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200"></textarea>
-        </div>
-
-        <!-- Tipo y Categoría -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Tipo de producto</label>
-            <input type="text" id="iaTipoProducto" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Categoría sugerida</label>
-            <input type="text" id="iaCategoriaSugerida" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
-          </div>
-        </div>
-
-        <!-- Marca/Modelo y Estado -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Marca/Modelo</label>
-            <input type="text" id="iaMarcaModelo" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Estado aparente</label>
-            <select id="iaEstado" class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
-              <option value="">Seleccionar estado</option>
-              <option value="nuevo">Nuevo</option>
-              <option value="bueno">Bueno</option>
-              <option value="aceptable">Aceptable</option>
-              <option value="desgastado">Desgastado</option>
-              <option value="para_restaurar">Para restaurar</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Errores/Warnings -->
-        <div id="iaErrores" class="hidden mb-4 p-3 bg-[#F4DCDC] rounded-lg text-sm text-[#A63D2F]">
-        </div>
-
-        <!-- Botones de acción -->
-        <div class="flex flex-col gap-3">
-          <% if !local_assigns[:edit_mode] %>
-          <button type="button" id="btnAplicarIA" class="w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all duration-200">
-            Aplicar al formulario
-          </button>
-          <% end %>
-          <% edit_mode = local_assigns[:edit_mode] || false %>
-          <button type="button" id="btnCrearProductoIA" class="w-full rounded-lg bg-[#7C3AED] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#6D28D9] cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 <%= 'hidden' if edit_mode %>">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-            </svg>
-            Crear nuevo producto con estos datos
-          </button>
-          <button type="button" id="btnCancelarIA" class="w-full rounded-lg border border-[#E8E0D4] px-6 py-2.5 text-sm font-medium text-[#6B5744] hover:bg-[#F5ECD7] cursor-pointer transition-all duration-200">
-            Cancelar
-          </button>
-        </div>
-      </div>
-
-      <!-- Error -->
-      <div id="iaError" class="hidden text-center py-8">
-        <div class="w-12 h-12 rounded-full bg-[#F4DCDC] flex items-center justify-center mx-auto mb-4">
-          <svg class="w-6 h-6 text-[#A63D2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-          </svg>
-        </div>
-        <p id="iaErrorMsg" class="text-[#A63D2F] mb-4">Error al analizar la imagen</p>
-        <button type="button" id="btnRetryIA" class="rounded-lg border border-[#A63D2F] px-6 py-2.5 text-sm font-medium text-[#A63D2F] hover:bg-[#F4DCDC] cursor-pointer transition-all duration-200">
-          Reintentar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-function eliminarFoto(button, fotoId) {
-  var container = button.closest('.foto-item');
-  var input = document.getElementById('fotos_a_eliminar');
-  
-  // Agregar el ID a la lista
-  var currentValues = [];
-  if (input.value && input.value.trim() !== '') {
-    currentValues = input.value.split(',');
-  }
-  
-  // Evitar duplicados
-  if (currentValues.indexOf(String(fotoId)) === -1) {
-    currentValues.push(String(fotoId));
-  }
-  
-  input.value = currentValues.join(',');
-  
-  console.log('Marca eliminar:', fotoId, '=>', input.value);
-  
-  container.classList.add('border-red-500', 'border-2');
-  container.querySelector('.btn-eliminar').classList.add('hidden');
-  container.querySelector('.btn-cancelar').classList.remove('hidden');
-  container.querySelector('.foto-marcada').classList.remove('hidden');
-}
-
-function cancelarEliminar(button, fotoId) {
-  var container = button.closest('.foto-item');
-  var input = document.getElementById('fotos_a_eliminar');
-  
-  var currentValues = [];
-  if (input.value && input.value.trim() !== '') {
-    currentValues = input.value.split(',');
-  }
-  
-  currentValues = currentValues.filter(function(id) { return id !== String(fotoId); });
-  input.value = currentValues.join(',');
-  
-  console.log('Desmarca eliminar:', fotoId, '=>', input.value);
-  
-  container.classList.remove('border-red-500', 'border-2');
-  container.querySelector('.btn-eliminar').classList.remove('hidden');
-  container.querySelector('.btn-cancelar').classList.add('hidden');
-  container.querySelector('.foto-marcada').classList.add('hidden');
-}
-
-// Funciones globales para análisis de IA
-function analizarImagenDesdeSrc(src) {
-  console.log('analizarImagenDesdeSrc llamado');
-  var modal = document.getElementById('iaModal');
-  var loading = document.getElementById('iaLoading');
-  var results = document.getElementById('iaResults');
-  var preview = document.getElementById('iaImagePreview');
-  var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-  
-  if (!modal || !loading || !results || !preview || !csrfToken) {
-    alert('Error: No se pudo inicializar el análisis');
-    return;
-  }
-  
-  modal.classList.remove('hidden');
-  loading.classList.remove('hidden');
-  results.classList.add('hidden');
-  document.getElementById('iaError').classList.add('hidden');
-  
-  preview.innerHTML = '<img src="' + src + '" class="max-h-48 mx-auto rounded-lg">';
-  
-  fetch('/ia/analyze', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-CSRF-Token': csrfToken
-    },
-    body: 'image_data=' + encodeURIComponent(src)
-  })
-  .then(function(response) { return response.json(); })
-  .then(function(data) {
-    loading.classList.add('hidden');
-    results.classList.remove('hidden');
-    
-    if (data.error) {
-      document.getElementById('iaError').querySelector('p').textContent = data.error;
-      document.getElementById('iaError').classList.remove('hidden');
-      return;
-    }
-    
-    var nombreField = document.querySelector('input[name="producto[nombre]"]');
-    var descripcionField = document.querySelector('textarea[name="producto[descripcion]"]');
-    var estadoField = document.querySelector('select[name="producto[estado]"]');
-    var categoriaField = document.querySelector('select[name="producto[categoria_id]"]');
-    
-    if (data.descripcion && descripcionField) {
-      descripcionField.value = data.descripcion;
-    }
-    
-    if (data.palabras_clave && nombreField && nombreField.value === '') {
-      var palabras = data.palabras_clave.slice(0, 4);
-      if (palabras.length > 0) {
-        nombreField.value = palabras.join(' - ');
-      }
-    }
-    
-    if (data.tipo_producto && nombreField) {
-      if (nombreField.value === '') {
-        nombreField.value = data.tipo_producto;
-      }
-    }
-    
-    if (data.estado && estadoField) {
-      for (var i = 0; i < estadoField.options.length; i++) {
-        if (estadoField.options[i].value === data.estado) {
-          estadoField.selectedIndex = i;
-          break;
-        }
-      }
-    }
-    
-    if (data.categoria_sugerida && categoriaField) {
-      for (var i = 0; i < categoriaField.options.length; i++) {
-        if (categoriaField.options[i].text.toLowerCase().includes(data.categoria_sugerida.toLowerCase())) {
-          categoriaField.selectedIndex = i;
-          break;
-        }
-      }
-    }
-    
-    document.getElementById('iaError').classList.add('hidden');
-    alert('Análisis completado. Los campos han sido llenados.');
-    
-    setTimeout(function() {
-      modal.classList.add('hidden');
-    }, 1000);
-  })
-  .catch(function(err) {
-    loading.classList.add('hidden');
-    document.getElementById('iaError').querySelector('p').textContent = 'Error de red: ' + err.message;
-    document.getElementById('iaError').classList.remove('hidden');
-  });
-}
-
-function analizarFotoIA() {
-  console.log('analizarFotoIA llamada');
-  
-  // 1. Buscar foto en el preview
-  var previewContainer = document.querySelector('[data-photo-preview-target="preview"]');
-  var previewImages = previewContainer ? previewContainer.querySelectorAll('img') : [];
-  
-  if (previewImages.length > 0 && previewImages[0].src) {
-    console.log('Usando preview:', previewImages[0].src.substring(0, 50));
-    analizarImagenDesdeSrc(previewImages[0].src);
-    return;
-  }
-  
-  // 2. Buscar en inputs
-  var fotoInputs = document.querySelectorAll('input[name="producto[fotos][]"]');
-  console.log('Inputs encontrados:', fotoInputs.length);
-  
-  for (var i = 0; i < fotoInputs.length; i++) {
-    var input = fotoInputs[i];
-    if (input.files && input.files.length > 0) {
-      var file = input.files[0];
-      console.log('Archivo:', file.name);
-      
-      var reader = new FileReader();
-      reader.onload = function(event) {
-        analizarImagenDesdeSrc(event.target.result);
-      };
-      reader.readAsDataURL(file);
-      return;
-    }
-  }
-  
-  // 3. Abrir cámara
-  console.log('Abriendo cámara');
-  document.getElementById('iaCameraInput').click();
-}
-
-// Inicialización cuando el DOM está listo
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM cargado');
-  
-  // Cerrar modales
-  var closeBtn = document.getElementById('closeIaModal');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function() {
-      document.getElementById('iaModal').classList.add('hidden');
-    });
-  }
-  
-  var cancelBtn = document.getElementById('btnCancelarIA');
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', function() {
-      document.getElementById('iaModal').classList.add('hidden');
-    });
-  }
-});
-</script>

@@ -5,7 +5,7 @@ class AddCategoriaIdToProductos < ActiveRecord::Migration[8.1]
     # Migrar datos: crear categorías desde valores únicos y actualizar productos
     execute <<-SQL.squish
       INSERT INTO categorias (nombre, created_at, updated_at)
-      SELECT DISTINCT categoria, datetime('now'), datetime('now')
+      SELECT DISTINCT categoria, NOW(), NOW()
       FROM productos
       WHERE categoria IS NOT NULL AND categoria != ''
     SQL

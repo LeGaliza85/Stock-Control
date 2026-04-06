@@ -81,47 +81,39 @@ class ProductosController < ApplicationController
   end
 
   def buscar_por_imagen
-    image_data = params[:imagen]
+    image_data = extract_image_data
 
-    if image_data.nil? || image_data.empty?
-      render json: { error: "Se requiere una imagen" }, status: :bad_request
+    unless image_data.present?
+      @error = "Se requiere una imagen"
+      respond_to do |format|
+        format.turbo_stream
+        format.json { render json: { error: @error }, status: :bad_request }
+      end
       return
     end
 
-    analyzer = ImageAnalyzerService.new(current_user)
+    service = ProductoBusquedaService.new(current_user)
+    result = service.buscar_por_imagen(image_data)
 
-    begin
-      embedding_json = analyzer.get_embedding_from_image(image_data)
+    if result[:error]
+      @error = result[:error]
+    else
+      @productos = result[:productos].map { |item| { producto: item[:producto], similitud: item[:score].round } }
+    end
 
-      if embedding_json.nil?
-        result = analyzer.analize_para_busqueda(image_data)
-
-        if result[:error]
-          render json: result, status: :unprocessable_entity
-          return
+    respond_to do |format|
+      format.turbo_stream
+      format.json do
+        if @error
+          render json: { error: @error }, status: :internal_server_error
+        else
+          render json: {
+            analisis: result[:analisis],
+            productos: result[:productos].map { |item| producto_json(item[:producto], item[:score].round) },
+            metodo: result[:metodo]
+          }
         end
-
-        resultados = buscar_productos_similares(result)
-        producto = resultados.first
-
-        render json: {
-          analisis: result,
-          productos: producto ? [ producto_json(producto) ] : [],
-          metodo: "legacy"
-        }
-        return
       end
-
-      resultado = Producto.buscar_por_embedding(embedding_json, limit: 5)
-
-      render json: {
-        analisis: { descripcion: "Búsqueda por similitud visual" },
-        productos: resultado.map { |item| producto_json(item[:producto], (item[:score] * 100).round) },
-        metodo: "clip"
-      }
-    rescue => e
-      Rails.logger.error "Error en buscar_por_imagen: #{e.message}"
-      render json: { error: "Error al analizar imagen: #{e.message}" }, status: :internal_server_error
     end
   end
 
@@ -276,6 +268,19 @@ class ProductosController < ApplicationController
         n.leida = false
       end
     end
+  end
+
+    def extract_image_data
+    imagen = [params[:imagen], params[:imagen_galeria], params[:imagen_camara]].compact.find do |f|
+      f.is_a?(String) ? f.present? : (f.respond_to?(:size) && f.size > 0)
+    end
+    
+    return imagen if imagen.is_a?(String) && imagen.present?
+    return nil unless imagen.respond_to?(:read)
+
+    content_type = imagen.respond_to?(:content_type) ? (imagen.content_type || "image/jpeg") : "image/jpeg"
+    encoded = Base64.strict_encode64(imagen.read)
+    "data:#{content_type};base64,#{encoded}"
   end
 
   def producto_params

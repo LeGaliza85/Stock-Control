@@ -1,0 +1,114 @@
+<%# locals: (show_fill_form: false) %>
+<div data-product-search-target="iaModal" data-action="click->product-search#closeOnBackdrop"
+  class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
+  <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6">
+      <%# Header %>
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Análisis de Imagen</h3>
+        <button type="button" data-action="click->product-search#closeIaModal"
+          class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
+          <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <%# Image preview %>
+      <div data-product-search-target="iaImagePreview"
+           class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center" style="min-height: 150px;">
+        <p class="text-[#9C8B7A] text-sm">Cargando imagen...</p>
+      </div>
+      <%# Loading %>
+      <div data-product-search-target="iaLoading" class="hidden text-center py-8">
+        <div class="relative inline-block w-16 h-16 mb-4">
+          <div class="absolute inset-0 rounded-full border-4 border-[#7C3AED]/20"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-[#7C3AED] animate-spin"></div>
+        </div>
+        <p class="text-lg font-semibold text-[#2C1810] mb-2">Analizando imagen...</p>
+        <p class="text-xs text-[#9C8B7A] mt-2">Usando Inteligencia Artificial local</p>
+      </div>
+      <%# Results %>
+      <div data-product-search-target="iaResults" class="hidden">
+        <%# Confidence bar %>
+        <div class="mb-4">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-sm font-medium text-[#6B5744]">Confianza del analisis</span>
+            <span data-product-search-target="iaConfianza" class="text-sm font-bold text-[#2C1810]">0%</span>
+          </div>
+          <div class="w-full bg-[#E8E0D4] rounded-full h-2">
+            <div data-product-search-target="iaConfianzaBar" class="bg-[#B8860B] h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+        <%# Description %>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Descripción detectada</label>
+          <textarea data-product-search-target="iaDescripcion" rows="4"
+                    class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200"></textarea>
+        </div>
+        <%# Type & Category %>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Tipo de producto</label>
+            <input type="text" data-product-search-target="iaTipoProducto"
+                   class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Categoría sugerida</label>
+            <input type="text" data-product-search-target="iaCategoriaSugerida"
+                   class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200" readonly>
+          </div>
+        </div>
+        <%# Brand & Condition %>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Marca/Modelo</label>
+            <input type="text" data-product-search-target="iaMarcaModelo"
+                   class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-[#6B5744] mb-1.5">Estado aparente</label>
+            <select data-product-search-target="iaEstado"
+                    class="w-full rounded-lg border border-[#E8E0D4] bg-white text-[#2C1810] shadow-sm focus:border-[#B8860B] focus:ring-[#B8860B] focus:ring-1 transition-all duration-200">
+              <option value="">Seleccionar estado</option>
+              <option value="nuevo">Nuevo</option>
+              <option value="bueno">Bueno</option>
+              <option value="aceptable">Aceptable</option>
+              <option value="desgastado">Desgastado</option>
+              <option value="restauracion">Para restaurar</option>
+            </select>
+          </div>
+        </div>
+        <%# Warnings %>
+        <div data-product-search-target="iaErrores" class="hidden mb-4 p-3 bg-[#F4DCDC] rounded-lg text-sm text-[#A63D2F]"></div>
+        <%# Action buttons %>
+        <div class="flex flex-col gap-3">
+          <% if show_fill_form %>
+            <button type="button" data-action="click->product-search#fillForm"
+              class="w-full rounded-lg bg-[#B8860B] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] cursor-pointer transition-all duration-200">
+              Aplicar al formulario
+            </button>
+          <% end %>
+          <button type="button" data-action="click->product-search#createProductFromIa"
+            class="w-full rounded-lg bg-[#7C3AED] px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#6D28D9] cursor-pointer transition-all duration-200 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Crear nuevo producto con estos datos
+          </button>
+          <button type="button" data-action="click->product-search#closeIaModal"
+            class="w-full rounded-lg border border-[#E8E0D4] px-6 py-2.5 text-sm font-medium text-[#6B5744] hover:bg-[#F5ECD7] cursor-pointer transition-all duration-200">
+            Cancelar
+          </button>
+        </div>
+      </div>
+      <%# Error %>
+      <div data-product-search-target="iaError" class="hidden text-center py-8">
+        <p data-product-search-target="iaErrorMsg" class="text-[#A63D2F] mb-4">Error al analizar la imagen</p>
+        <button type="button" data-action="click->product-search#retryIa"
+          class="rounded-lg border border-[#A63D2F] px-6 py-2.5 text-sm font-medium text-[#A63D2F] hover:bg-[#F4DCDC] cursor-pointer transition-all duration-200">
+          Reintentar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

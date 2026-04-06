@@ -1,28 +1,18 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["preview", "counter"];
+  static targets = ["preview", "counter", "fotosAEliminar"];
 
   connect() {
-    console.log("photo-preview controller connected");
     this.selectedFiles = [];
-    this._setupExistingFotos();
   }
 
   openCamera(event) {
     event.preventDefault();
-    console.log('openCamera called');
-    
-    // Create a fresh input element each time
     const container = document.getElementById('cameraInputContainer');
-    if (!container) {
-      console.error('Camera input container not found');
-      return;
-    }
+    if (!container) return;
     
-    // Remove old input and create new one
     container.innerHTML = '';
-    
     const newInput = document.createElement('input');
     newInput.type = 'file';
     newInput.name = 'producto[fotos][]';
@@ -34,31 +24,12 @@ export default class extends Controller {
     newInput.dataset.action = 'change->photo-preview#preview';
     
     container.appendChild(newInput);
-    
-    // Trigger click on the new input
     newInput.click();
-    console.log('Camera input clicked');
   }
 
-  _setupExistingFotos() {
-    const checkboxes = this.element.querySelectorAll(".foto-checkbox");
-    checkboxes.forEach((checkbox) => {
-      checkbox.addEventListener("change", (e) => this._toggleExistingFoto(e));
-    });
-  }
-
-  _toggleExistingFoto(event) {
-    const checkbox = event.target;
-    const wrapper = checkbox.closest(".foto-item");
-    const preview = wrapper.querySelector(".foto-preview");
-
-    if (checkbox.checked) {
-      preview.classList.add("border-[#A63D2F]", "opacity-50");
-      preview.classList.remove("border-[#E8E0D4]");
-    } else {
-      preview.classList.remove("border-[#A63D2F]", "opacity-50");
-      preview.classList.add("border-[#E8E0D4]");
-    }
+  openGallery(event) {
+    event.preventDefault();
+    document.getElementById('fotosInput').click();
   }
 
   preview(event) {
@@ -66,18 +37,14 @@ export default class extends Controller {
     const input = event.target;
     const files = input.files;
     const inputId = input.id;
-    console.log('Files selected:', files.length, 'Input ID:', inputId);
     if (!files.length) return;
 
-    // First add new files to selectedFiles
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/")) return;
       this.selectedFiles.push(file);
-      console.log('Added file:', file.name);
 
       const reader = new FileReader();
       reader.onload = (e) => {
-        console.log('FileReader loaded for:', file.name);
         const wrapper = document.createElement("div");
         wrapper.className = "relative group mb-2";
 
@@ -89,64 +56,74 @@ export default class extends Controller {
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
         removeBtn.innerHTML = "&times;";
-        removeBtn.className = "absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#A63D2F] text-white text-lg flex items-center justify-center cursor-pointer";
+        removeBtn.className = "absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#A63D2F] text-white text-lg flex items-center justify-center cursor-pointer shadow-md hover:bg-red-600";
         removeBtn.title = "Eliminar foto";
         removeBtn.onclick = (e) => {
           e.preventDefault();
-          if (confirm('¿Estás seguro de que quieres eliminar esta foto?')) {
-            wrapper.remove();
-            const idx = this.selectedFiles.indexOf(file);
-            if (idx > -1) this.selectedFiles.splice(idx, 1);
-            this._updateFileInputFromSelected(inputId);
-            this._updateCounter();
-          }
+          wrapper.remove();
+          const idx = this.selectedFiles.indexOf(file);
+          if (idx > -1) this.selectedFiles.splice(idx, 1);
+          this._updateFileInputFromSelected(inputId);
+          this._updateCounter();
         };
 
         wrapper.appendChild(img);
         wrapper.appendChild(removeBtn);
         container.appendChild(wrapper);
-        console.log('Thumbnail added for:', file.name);
-      };
-      reader.onerror = (e) => {
-        console.error('FileReader error:', e);
       };
       reader.readAsDataURL(file);
     });
 
-    // Update the input with ALL accumulated files
     this._updateFileInputFromSelected(inputId);
     this._updateCounter();
-    
-    // Reset input value to allow re-selecting camera
     input.value = '';
-    console.log('Input value reset, total files:', this.selectedFiles.length);
   }
 
-  _updateFileInputFromFiles(files, inputId = null) {
-    const dt = new DataTransfer();
-    Array.from(files).forEach((f) => dt.items.add(f));
-    this._replaceInputFiles(dt.files, inputId);
+  eliminarFotoExistente(e) {
+    const fotoId = e.currentTarget.dataset.fotoId;
+    const container = e.currentTarget.closest('.foto-item');
+    const btnEliminar = container.querySelector('.btn-eliminar');
+    const btnCancelar = container.querySelector('.btn-cancelar');
+    const marca = container.querySelector('.foto-marcada');
+
+    let ids = this.fotosAEliminarTarget.value ? this.fotosAEliminarTarget.value.split(',') : [];
+    if (!ids.includes(fotoId)) {
+      ids.push(fotoId);
+    }
+    this.fotosAEliminarTarget.value = ids.join(',');
+
+    container.classList.add('border-red-500', 'border-2');
+    btnEliminar.classList.add('hidden');
+    btnCancelar.classList.remove('hidden');
+    marca.classList.remove('hidden');
   }
 
-  _updateFileInputFromSelected(inputId = 'cameraInput') {
+  cancelarEliminarFotoExistente(e) {
+    const fotoId = e.currentTarget.dataset.fotoId;
+    const container = e.currentTarget.closest('.foto-item');
+    const btnEliminar = container.querySelector('.btn-eliminar');
+    const btnCancelar = container.querySelector('.btn-cancelar');
+    const marca = container.querySelector('.foto-marcada');
+
+    let ids = this.fotosAEliminarTarget.value ? this.fotosAEliminarTarget.value.split(',') : [];
+    ids = ids.filter(id => id !== fotoId);
+    this.fotosAEliminarTarget.value = ids.join(',');
+
+    container.classList.remove('border-red-500', 'border-2');
+    btnEliminar.classList.remove('hidden');
+    btnCancelar.classList.add('hidden');
+    marca.classList.add('hidden');
+  }
+
+  _updateFileInputFromSelected(inputId) {
     const dt = new DataTransfer();
     this.selectedFiles.forEach((f) => dt.items.add(f));
-    // Use the specified input or cameraInput by default
     this._replaceInputFiles(dt.files, inputId);
   }
 
-  _replaceInputFiles(files, targetInputId = null) {
-    console.log('Replacing input files:', files.length, 'target:', targetInputId);
-    
-    // Only update one specific input, not all inputs
-    const input = targetInputId 
-      ? document.getElementById(targetInputId)
-      : this.element.querySelector("input[name='producto[fotos][]']");
-    
-    if (!input) {
-      console.error('Input not found');
-      return;
-    }
+  _replaceInputFiles(files, targetInputId) {
+    const input = document.getElementById(targetInputId) || this.element.querySelector("input[name='producto[fotos][]']");
+    if (!input) return;
 
     const newInput = document.createElement('input');
     newInput.type = 'file';
@@ -154,6 +131,7 @@ export default class extends Controller {
     newInput.id = input.id;
     newInput.accept = input.accept;
     newInput.multiple = input.multiple;
+    if (input.hasAttribute('capture')) newInput.setAttribute('capture', input.getAttribute('capture'));
     newInput.className = input.className;
     newInput.files = files;
     
@@ -168,12 +146,8 @@ export default class extends Controller {
 
   _updateCounter() {
     if (this.hasCounterTarget) {
-      this.counterTarget.textContent =
-        this.selectedFiles.length + " foto(s) seleccionada(s)";
-      this.counterTarget.classList.toggle(
-        "hidden",
-        this.selectedFiles.length === 0,
-      );
+      this.counterTarget.textContent = this.selectedFiles.length + " foto(s) seleccionada(s)";
+      this.counterTarget.classList.toggle("hidden", this.selectedFiles.length === 0);
     }
   }
 }

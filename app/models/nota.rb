@@ -1,4 +1,6 @@
 class Nota < ApplicationRecord
+  self.table_name = 'notas'
+
   belongs_to :producto
   belongs_to :user
 
