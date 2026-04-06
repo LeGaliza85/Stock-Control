@@ -6,22 +6,22 @@
       <% unless current_user.visitante? %>
         <div class="flex flex-col w-full gap-3 sm:flex-row">
           <button type="button" data-action="click->product-search#openSearchModal"
-            class="inline-flex items-center justify-center sm:justify-start cursor-pointer gap-2 rounded-lg border-2 border-[#10B981] px-5 py-2.5 text-sm font-semibold text-[#10B981] hover:bg-[#10B981] hover:text-white transition-all duration-200">
+            class="btn-secondary flex-1 sm:flex-none inline-flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             Buscar en stock
           </button>
           <button type="button" data-action="click->product-search#openIaModal"
-            class="inline-flex items-center justify-center sm:justify-start cursor-pointer gap-2 rounded-lg border-2 border-[#7C3AED] px-5 py-2.5 text-sm font-semibold text-[#7C3AED] hover:bg-[#7C3AED] hover:text-white transition-all duration-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="btn-secondary flex-1 sm:flex-none inline-flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 text-[#B8860B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
             </svg>
             Analizar con IA
           </button>
           <input type="file" data-product-search-target="iaFileInput" data-action="change->product-search#onIaFileChange" accept="image/*" capture="environment" class="hidden">
-          <%= link_to new_producto_path, class: "inline-flex items-center justify-center sm:justify-start cursor-pointer gap-2 rounded-lg bg-[#B8860B] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200" do %>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          <%= link_to new_producto_path, class: "btn-primary flex-1 sm:flex-none inline-flex items-center justify-center gap-2 no-underline" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
             Nuevo Producto
           <% end %>
         </div>
@@ -32,19 +32,19 @@
     <% unless current_user.visitante? %>
       <div class="fixed bottom-6 right-6 z-50 md:hidden flex flex-col gap-3">
         <button type="button" data-action="click->product-search#openSearchModal"
-          class="w-14 h-14 rounded-full bg-[#10B981] text-white shadow-lg border-none flex items-center justify-center cursor-pointer">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="w-14 h-14 rounded-full bg-[#FAF7F2] text-[#2C1810] shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-[#E8E0D4] flex items-center justify-center cursor-pointer hover:bg-[#F5ECD7] transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
         </button>
         <button type="button" data-action="click->product-search#openIaModal"
-          class="w-14 h-14 rounded-full bg-[#7C3AED] text-white shadow-lg border-none flex items-center justify-center cursor-pointer">
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="w-14 h-14 rounded-full bg-[#FAF7F2] text-[#B8860B] shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-[#E8E0D4] flex items-center justify-center cursor-pointer hover:bg-[#F5ECD7] transition-colors">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
           </svg>
         </button>
-        <%= link_to new_producto_path, class: "w-14 h-14 rounded-full bg-[#B8860B] text-white shadow-lg flex items-center justify-center cursor-pointer no-underline" do %>
-          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <%= link_to new_producto_path, class: "w-14 h-14 rounded-full bg-[#B8860B] text-white shadow-[0_4px_12px_rgba(184,134,11,0.4)] flex items-center justify-center cursor-pointer no-underline hover:bg-[#9A7209] transition-colors" do %>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
         <% end %>

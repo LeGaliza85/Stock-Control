@@ -3,22 +3,8 @@
     <div class="aspect-square bg-[#FAF7F2] flex items-center justify-center overflow-hidden rounded-t-xl relative">
       <% if producto.fotos.attached? %>
         <%= image_tag producto.fotos.first.variant(resize_to_limit: [300, 300]), class: "object-cover w-full h-full group-hover:scale-105 transition-transform duration-300" %>
-        <%
-          etiqueta_colors = {
-            "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
-            "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
-            "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
-            "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
-          }
-          etiqueta_textos = {
-            "en_venta" => "EN VENTA",
-            "reservado" => "RESERVADO",
-            "vendido" => "VENDIDO",
-            "en_restauracion" => "EN RESTAURACIÓN"
-          }
-        %>
-        <div class="absolute top-0 left-0 w-full <%= etiqueta_colors[producto.etiqueta] %> text-white text-[10px] font-bold text-center py-0.5 z-20">
-          <%= etiqueta_textos[producto.etiqueta] %>
+        <div class="absolute top-0 left-0 w-full">
+          <%= render "productos/etiqueta_badge", etiqueta: producto.etiqueta, full_width: true %>
         </div>
         
         <%# IA Processing Overlay %>
@@ -38,22 +24,8 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#E8E0D4]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           <span class="text-[#9C8B7A] text-xs">Sin fotografía</span>
         </div>
-        <%
-          etiqueta_colors = {
-            "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
-            "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
-            "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
-            "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
-          }
-          etiqueta_textos = {
-            "en_venta" => "EN VENTA",
-            "reservado" => "RESERVADO",
-            "vendido" => "VENDIDO",
-            "en_restauracion" => "EN RESTAURACIÓN"
-          }
-        %>
-        <div class="absolute top-0 left-0 w-full <%= etiqueta_colors[producto.etiqueta] %> text-white text-[10px] font-bold text-center py-0.5 z-20">
-          <%= etiqueta_textos[producto.etiqueta] %>
+        <div class="absolute top-0 left-0 w-full">
+          <%= render "productos/etiqueta_badge", etiqueta: producto.etiqueta, full_width: true %>
         </div>
       <% end %>
     </div>

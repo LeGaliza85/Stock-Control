@@ -1,10 +1,10 @@
 <%# Etiqueta badge partial - locals: etiqueta:, full_width: true %>
 <%
   colors = {
-    "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
-    "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
-    "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
-    "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
+    "en_venta" => "bg-[#436850] text-white border-[#34523F]",
+    "reservado" => "bg-[#A07D2C] text-white border-[#846724]",
+    "vendido" => "bg-[#8C3A33] text-white border-[#75302A]",
+    "en_restauracion" => "bg-[#7A5B44] text-white border-[#614836]"
   }
   textos = {
     "en_venta" => "EN VENTA",
@@ -13,10 +13,10 @@
     "en_restauracion" => "EN RESTAURACIÓN"
   }
   full_width = local_assigns[:full_width].nil? ? true : local_assigns[:full_width]
-  color = colors[etiqueta] || "bg-gray-500"
+  color = colors[etiqueta] || "bg-[#6B5744] text-white border-[#514234]"
   texto = textos[etiqueta] || etiqueta.to_s.humanize
-  width_class = full_width ? "w-full" : ""
+  width_class = full_width ? "w-full" : "px-3 rounded-md inline-block"
 %>
-<div class="<%= width_class %> <%= color %> text-white text-[10px] font-bold text-center py-0.5">
+<div class="<%= width_class %> <%= color %> text-[11px] font-bold text-center py-1.5 border-b uppercase tracking-widest shadow-md">
   <%= texto %>
 </div>

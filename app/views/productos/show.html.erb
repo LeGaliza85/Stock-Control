@@ -22,22 +22,8 @@
                 zoom_url: url_for(foto) 
               } %>
         <% end %>
-        <%
-          etiqueta_colors = {
-            "en_venta" => "bg-gradient-to-r from-green-500 to-emerald-500",
-            "reservado" => "bg-gradient-to-r from-amber-500 to-orange-500",
-            "vendido" => "bg-gradient-to-r from-red-500 to-rose-500",
-            "en_restauracion" => "bg-gradient-to-r from-violet-500 to-purple-500"
-          }
-          etiqueta_textos = {
-            "en_venta" => "EN VENTA",
-            "reservado" => "RESERVADO",
-            "vendido" => "VENDIDO",
-            "en_restauracion" => "EN RESTAURACIÓN"
-          }
-        %>
-        <div class="absolute top-0 left-0 w-full <%= etiqueta_colors[@producto.etiqueta] %> text-white text-xs font-bold text-center py-1">
-          <%= etiqueta_textos[@producto.etiqueta] %>
+        <div class="absolute top-0 left-0 w-full">
+          <%= render "productos/etiqueta_badge", etiqueta: @producto.etiqueta, full_width: true %>
         </div>
 
         <% if fotos.size > 1 %>
