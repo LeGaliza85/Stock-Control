@@ -46,6 +46,9 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# CLIP embeddings for image search (free, local)
+gem "clip-rb"
+
 # S3 storage for Active Storage (Scaleway Object Storage)
 gem "aws-sdk-s3", require: false
 

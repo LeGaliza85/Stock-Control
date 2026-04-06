@@ -18,10 +18,33 @@ class ImageAnalyzerService
   GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models".freeze
   OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions".freeze
 
+  CLIP_MODEL_NAME = "clip-ViT-B-32"
+
   def initialize(user)
     @user = user
     @ia_service = user.ia_service || "gemini"
     @gemini_model = user.gemini_model || "gemini-2.5-flash"
+    @clip_model = nil
+  end
+
+  def clip_model
+    return @clip_model if @clip_model
+
+    if $clip_model
+      @clip_model = $clip_model
+      return @clip_model
+    end
+
+    begin
+      require "clip"
+      @clip_model = Clip::Model.new
+    rescue LoadError
+      Rails.logger.error "clip-rb gem not installed. Run: bundle add clip-rb"
+      nil
+    rescue => e
+      Rails.logger.error "Error loading CLIP model: #{e.message}"
+      nil
+    end
   end
 
   def analyze(image_data, model: nil)
@@ -158,7 +181,65 @@ class ImageAnalyzerService
     { error: "Error: #{e.message}" }
   end
 
+  # Generar embedding de imagen usando CLIP (gratis, local)
+  def get_embedding_from_image(image_data)
+    return nil if clip_model.nil?
+
+    begin
+      image_path = prepare_image_for_clip(image_data)
+      return nil if image_path.nil?
+
+      embedding = clip_model.encode_image(image_path)
+      File.unlink(image_path) if File.exist?(image_path)
+      embedding.to_json
+    rescue => e
+      Rails.logger.error "Error generating CLIP embedding: #{e.message}"
+      nil
+    end
+  end
+
+  # Generar embedding de texto usando CLIP
+  def get_embedding_from_text(text)
+    return nil if clip_model.nil?
+    return nil if text.blank?
+
+    begin
+      embedding = clip_model.encode_text(text)
+      embedding.to_json
+    rescue => e
+      Rails.logger.error "Error generating text embedding: #{e.message}"
+      nil
+    end
+  end
+
   private
+
+  def prepare_image_for_clip(image_data)
+    require "base64"
+    require "tempfile"
+
+    begin
+      image_bytes = if image_data.is_a?(String)
+        if image_data.start_with?("data:")
+          Base64.decode64(image_data.split(",").last)
+        else
+          Base64.decode64(image_data)
+        end
+      elsif image_data.respond_to?(:read)
+        image_data.read
+      else
+        image_data.to_s
+      end
+
+      file = Tempfile.new(["clip_image", ".jpg"], binmode: true)
+      file.write(image_bytes)
+      file.close
+      file.path
+    rescue => e
+      Rails.logger.error "Error preparing image for CLIP: #{e.message}"
+      nil
+    end
+  end
 
   def analyze_with_gemini(image_data, model:)
     api_key = ENV["GEMINI_API_KEY"]
@@ -307,23 +388,19 @@ class ImageAnalyzerService
         response = http.request(request)
         parsed = JSON.parse(response.body)
 
-        # Si la respuesta es exitosa, procesar
         if response.is_a?(Net::HTTPSuccess)
           result = parse_openrouter_response(parsed)
           result["source"] = "openrouter"
           return result
         end
 
-        # Si es error 429 (rate limit) o 402 (no créditos), intentar siguiente modelo
         if [ 429, 402, 400, 503 ].include?(response.code.to_i)
           next
         end
 
-        # Para otros errores, devolver el error
         error_msg = parsed.dig("error", "message") || "Error desconocido"
         return { error: "Error de OpenRouter (#{model}): #{response.code} - #{error_msg}", confianza: 0 }
       rescue StandardError => e
-        # Si falla la conexión, intentar siguiente modelo
         next
       end
     end
@@ -467,77 +544,5 @@ class ImageAnalyzerService
     }
   rescue JSON::ParserError => e
     { error: "Error al procesar respuesta de Moondream: #{e.message}", confianza: 0 }
-  end
-
-  CLIP_URL = "https://openrouter.ai/api/v1/embeddings".freeze
-  EMBEDDING_MODEL = "nvidia/llama-nemotron-embed-vl-1b-v2:free".freeze
-
-  public
-
-  def get_embedding_from_image(image_data)
-    base64_image = prepare_image(image_data)
-    return nil if base64_image.nil?
-
-    request_body = {
-      model: EMBEDDING_MODEL,
-      input: [
-        {
-          content: [
-            { type: "image_url", image_url: { url: "data:image/jpeg;base64,#{base64_image}" } }
-          ]
-        }
-      ],
-      encoding_format: "float"
-    }
-
-    make_embedding_request(request_body)
-  rescue => e
-    Rails.logger.error "Error getting CLIP embedding: #{e.message}"
-    nil
-  end
-
-  def get_embedding_from_text(text)
-    return nil if text.blank?
-
-    request_body = {
-      model: EMBEDDING_MODEL,
-      input: [text],
-      encoding_format: "float"
-    }
-
-    make_embedding_request(request_body)
-  rescue => e
-    Rails.logger.error "Error getting text embedding: #{e.message}"
-    nil
-  end
-
-  private
-
-  def make_embedding_request(request_body)
-    api_key = ENV["OPENROUTER_API_KEY"]
-    return nil if api_key.nil? || api_key.empty?
-
-    uri = URI(CLIP_URL)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    http.open_timeout = 30
-    http.read_timeout = 60
-
-    request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request["Authorization"] = "Bearer #{api_key}"
-    request.body = request_body.to_json
-
-    response = http.request(request)
-    unless response.is_a?(Net::HTTPSuccess)
-      Rails.logger.error "Embedding API error: #{response.code} - #{response.body}"
-      return nil
-    end
-
-    parsed = JSON.parse(response.body)
-    embedding = parsed.dig("data", 0, "embedding")
-    return nil unless embedding
-
-    embedding.to_json
   end
 end

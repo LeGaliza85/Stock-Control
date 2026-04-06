@@ -832,6 +832,8 @@
       var color = etiquetaColors[p.etiqueta] || 'bg-gray-500';
       var label = etiquetaLabels[p.etiqueta] || p.etiqueta;
 
+      var similitudHtml = p.similitud ? '<span class="text-xs font-bold text-white px-2 py-0.5 rounded bg-blue-600">' + p.similitud + '%</span>' : '';
+
       var item = document.createElement('a');
       item.href = '/productos/' + p.id;
       item.className = 'flex items-center gap-3 p-3 rounded-lg border border-[#E8E0D4] hover:bg-[#FAF7F2] transition-colors';
@@ -839,6 +841,7 @@
         '<div class="flex-1 min-w-0">' +
           '<div class="flex items-center gap-2">' +
             '<span class="text-xs font-bold text-white px-1.5 py-0.5 rounded ' + color + '">' + label + '</span>' +
+            similitudHtml +
           '</div>' +
           '<p class="font-medium text-[#2C1810] truncate">' + (p.nombre || 'Sin nombre') + '</p>' +
           '<p class="text-sm text-[#B8860B] font-semibold">' + formatoPrecio(p.precio_venta) + '</p>' +

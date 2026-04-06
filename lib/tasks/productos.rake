@@ -82,6 +82,56 @@ namespace :productos do
     puts "Productos con embedding: #{productos_con}/#{Producto.count}"
   end
 
+  desc "Regenerar TODOS los embeddings (formato uniforme)"
+  task regenerar_embeddings: :environment do
+    puts "=== Regenerando todos los embeddings ==="
+
+    productos = Producto.joins(:fotos_attachments).distinct
+    puts "Productos con fotos: #{productos.count}"
+
+    require "clip"
+    clip = $clip_model || Clip::Model.new
+
+    productos.each do |producto|
+      print "Procesando ##{producto.id}: #{producto.nombre}... "
+
+      begin
+        embeddings = []
+
+        producto.fotos.each do |foto|
+          begin
+            blob = foto.blob
+            image_binary = blob.download
+
+            tmp = Tempfile.new(["clip", ".jpg"], binmode: true)
+            tmp.write(image_binary)
+            tmp.close
+
+            emb = clip.encode_image(tmp.path)
+            embeddings << emb if emb
+            tmp.unlink
+          rescue => e
+            puts "(error foto: #{e.message})"
+          end
+        end
+
+        if embeddings.any?
+          producto.update_column(:embedding, embeddings.to_json)
+          puts "OK (#{embeddings.length} fotos)"
+        else
+          puts "SIN EMBEDDING"
+        end
+      rescue => e
+        puts "ERROR: #{e.message}"
+      end
+
+      sleep 0.5
+    end
+
+    total = Producto.where.not(embedding: nil).where("embedding != ?", "").count
+    puts "\n=== Total con embedding: #{total} ==="
+  end
+
   desc "Ver estado de embeddings en la base de datos"
   task verificar_embeddings: :environment do
     total = Producto.count

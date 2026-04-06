@@ -1,4 +1,5 @@
 require 'base64'
+require 'tempfile'
 
 class Producto < ApplicationRecord
   belongs_to :user
@@ -38,26 +39,26 @@ class Producto < ApplicationRecord
 
   def generar_embedding
     return unless fotos.attached?
-    return if embedding.present?
 
-    first_foto = fotos.first
-    return unless first_foto
-    return unless first_foto.blob
+    embeddings = []
 
-    begin
-      blob = first_foto.blob
-      image_binary = blob.download
-      base64_encoded = Base64.strict_encode64(image_binary)
-      image_data = "data:#{blob.content_type};base64,#{base64_encoded}"
+    fotos.each do |foto|
+      begin
+        blob = foto.blob
+        image_binary = blob.download
+        base64_encoded = Base64.strict_encode64(image_binary)
+        image_data = "data:#{blob.content_type};base64,#{base64_encoded}"
 
-      analyzer = ImageAnalyzerService.new(user)
-      embedding_json = analyzer.get_embedding_from_image(image_data)
-
-      if embedding_json
-        update_column(:embedding, embedding_json)
+        analyzer = ImageAnalyzerService.new(user)
+        embedding_json = analyzer.get_embedding_from_image(image_data)
+        embeddings << JSON.parse(embedding_json) if embedding_json
+      rescue => e
+        Rails.logger.error "Error generando embedding para foto: #{e.message}"
       end
-    rescue => e
-      Rails.logger.error "Error generando embedding: #{e.message}"
+    end
+
+    if embeddings.any?
+      update_column(:embedding, embeddings.to_json)
     end
   end
 
@@ -107,7 +108,7 @@ class Producto < ApplicationRecord
     end
   end
 
-  def self.buscar_por_embedding(embedding_json, limit: 20)
+  def self.buscar_por_embedding(embedding_json, limit: 5)
     return [] if embedding_json.blank?
 
     begin
@@ -122,19 +123,31 @@ class Producto < ApplicationRecord
 
     scored = productos_with_embedding.map do |p|
       begin
-        stored_embedding = JSON.parse(p.embedding)
-        score = cosine_similarity(query_embedding, stored_embedding)
-        { producto: p, score: score }
-      rescue
+        stored_embeddings = JSON.parse(p.embedding)
+
+        if stored_embeddings.is_a?(Array) && stored_embeddings.first.is_a?(Array)
+          # array de arrays
+        elsif stored_embeddings.is_a?(Array) && stored_embeddings.first.is_a?(Float)
+          stored_embeddings = [stored_embeddings]
+        else
+          stored_embeddings = [stored_embeddings]
+        end
+
+        best_score = stored_embeddings.map do |emb|
+          cosine_similarity(query_embedding, emb)
+        end.max
+
+        { producto: p, score: best_score }
+      rescue => e
+        Rails.logger.error "Error calculando similitud: #{e.message}"
         { producto: p, score: 0 }
       end
     end
 
     scored
-      .select { |s| s[:score] > 0.8 }
+      .select { |s| s[:score] > 0.3 }
       .sort_by { |s| -s[:score] }
       .first(limit)
-      .map { |s| s[:producto] }
   end
 
   def self.cosine_similarity(a, b)

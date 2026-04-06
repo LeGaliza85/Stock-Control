@@ -251,7 +251,7 @@ class ProductosController < ApplicationController
         
         render json: {
           analisis: result,
-          producto: producto ? {
+          productos: producto ? [{
             id: producto.id,
             nombre: producto.nombre,
             descripcion: producto.descripcion,
@@ -259,25 +259,31 @@ class ProductosController < ApplicationController
             etiqueta: producto.etiqueta,
             categoria: producto.categoria&.nombre,
             fotos: producto.fotos.attached? ? url_for(producto.fotos.first) : nil
-          } : nil,
+          }] : [],
           metodo: "legacy"
         }
         return
       end
 
-      resultado = Producto.buscar_por_embedding(embedding_json, limit: 1).first
+      resultado = Producto.buscar_por_embedding(embedding_json, limit: 5)
 
+      productos_encontrados = resultado.map do |item|
+        p = item[:producto]
+        {
+          id: p.id,
+          nombre: p.nombre,
+          descripcion: p.descripcion,
+          precio_venta: p.precio_venta,
+          etiqueta: p.etiqueta,
+          categoria: p.categoria&.nombre,
+          fotos: p.fotos.attached? ? url_for(p.fotos.first) : nil,
+          similitud: (item[:score] * 100).round(0)
+        }
+      end
+        
       render json: {
         analisis: { descripcion: "Búsqueda por similitud visual" },
-        producto: resultado ? {
-          id: resultado.id,
-          nombre: resultado.nombre,
-          descripcion: resultado.descripcion,
-          precio_venta: resultado.precio_venta,
-          etiqueta: resultado.etiqueta,
-          categoria: resultado.categoria&.nombre,
-          fotos: resultado.fotos.attached? ? url_for(resultado.fotos.first) : nil
-        } : nil,
+        productos: productos_encontrados,
         metodo: "clip"
       }
     rescue => e
