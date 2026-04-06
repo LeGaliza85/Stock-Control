@@ -2,10 +2,8 @@ class NotasController < ApplicationController
   allow_unauthenticated_access only: []
   before_action :require_no_visitante
   before_action :set_producto
-  before_action :set_nota, only: [:update, :destroy]
-  before_action :authorize_nota!, only: [:update, :destroy]
-
-
+  before_action :set_nota, only: [ :update, :destroy ]
+  before_action :authorize_nota!, only: [ :update, :destroy ]
 
   def create
     @nota = @producto.notas.build(nota_params)
@@ -52,6 +50,6 @@ class NotasController < ApplicationController
   end
 
   def nota_params
-    params.require(:nota).permit(:contenido)
+    params.permit(:contenido)
   end
 end
