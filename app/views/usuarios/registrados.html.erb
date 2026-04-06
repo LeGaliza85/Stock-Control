@@ -1,48 +1,96 @@
-<div class="w-full max-w-4xl mx-auto">
-  <div class="mb-6">
-    <%= link_to productos_path, class: "inline-flex items-center gap-1 text-[#B8860B] hover:text-[#9A7209] text-sm font-medium transition-all duration-200" do %>
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
-      Volver al inventario
-    <% end %>
-  </div>
+<div class="w-full max-w-5xl mx-auto">
+  <% content_for :breadcrumbs do %>
+    <%= render 'shared/breadcrumbs', paths: [
+      { name: "Administración", url: "#" },
+      { name: "Registro de accesos", url: nil }
+    ] %>
+  <% end %>
+
+  <h1 class="text-3xl font-bold text-[#2C1810] mb-2">Usuarios Registrados</h1>
+  <p class="text-[#6B5744] mb-8 text-sm md:text-base">Usuarios que se han registrado públicamente desde la pantalla de creación de cuentas.</p>
   
-  <h1 class="text-3xl font-bold text-[#2C1810] mb-2" style="font-family: 'Playfair Display', serif;">Usuarios Registrados</h1>
-  <p class="text-[#6B5744] mb-8">Usuarios que se han registrado públicamente desde "Crear cuenta"</p>
-  
-  <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm overflow-hidden">
-    <table class="w-full">
-      <thead class="bg-[#F5ECD7]">
-        <tr>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Nombre</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Email</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Fecha de registro</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-[#2C1810]">Contraseña</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-[#E8E0D4]">
-        <% if @usuarios.any? %>
-          <% @usuarios.each do |usuario| %>
-            <tr class="hover:bg-[#FAF7F2]">
-              <td class="px-6 py-4 text-sm text-[#2C1810]"><%= usuario.nombre %></td>
-              <td class="px-6 py-4 text-sm text-[#2C1810]"><%= usuario.email_address %></td>
-              <td class="px-6 py-4 text-sm text-[#2C1810]">
+  <div class="bg-white md:rounded-xl md:border border-y md:border-x border-[#E8E0D4] md:shadow-sm -mx-4 md:mx-0">
+    <!-- Desktop Table (Hidden on Mobile) -->
+    <div class="hidden md:block overflow-x-auto">
+      <table class="w-full text-left">
+        <thead class="bg-[#FAF7F2] border-b border-[#E8E0D4]">
+          <tr>
+            <th class="px-6 py-4 text-xs font-bold text-[#9C8B7A] uppercase tracking-wider">Nombre</th>
+            <th class="px-6 py-4 text-xs font-bold text-[#9C8B7A] uppercase tracking-wider">Email</th>
+            <th class="px-6 py-4 text-xs font-bold text-[#9C8B7A] uppercase tracking-wider">Fecha de registro</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-[#E8E0D4]">
+          <% if @usuarios.any? %>
+            <% @usuarios.each do |usuario| %>
+              <tr class="hover:bg-[#FAF7F2]/50 transition-colors">
+                <td class="px-6 py-4 text-sm font-medium text-[#2C1810]">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#F5ECD7] text-[#B8860B] flex items-center justify-center font-bold text-xs">
+                      <%= usuario.nombre.first.upcase %>
+                    </div>
+                    <%= usuario.nombre %>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-[#6B5744]"><%= usuario.email_address %></td>
+                <td class="px-6 py-4 text-sm text-[#6B5744]">
+                  <% if usuario.registered_at %>
+                    <span class="inline-flex items-center gap-1.5">
+                      <svg class="w-4 h-4 text-[#9C8B7A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                      <%= usuario.registered_at.strftime("%d/%m/%Y") %> <span class="text-[#9C8B7A] text-xs ml-1"><%= usuario.registered_at.strftime("%H:%M") %></span>
+                    </span>
+                  <% else %>
+                    <span class="text-[#9C8B7A] italic">-</span>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          <% else %>
+            <tr>
+              <td colspan="3" class="px-6 py-12 text-center">
+                <%= render 'shared/empty_state', 
+                    title: 'Sin usuarios registrados', 
+                    description: 'Aún no hay usuarios registrados públicamente en el sistema.' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View (Hidden on Desktop) -->
+    <div class="md:hidden divide-y divide-[#E8E0D4]">
+      <% if @usuarios.any? %>
+        <% @usuarios.each do |usuario| %>
+          <div class="p-4 bg-white hover:bg-[#FAF7F2]/50 transition-colors">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full bg-[#F5ECD7] text-[#B8860B] flex items-center justify-center font-bold text-sm shrink-0">
+                <%= usuario.nombre.first.upcase %>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-bold text-[#2C1810] truncate"><%= usuario.nombre %></h3>
+                <p class="text-sm text-[#6B5744] truncate"><%= usuario.email_address %></p>
+              </div>
+            </div>
+            <div class="bg-[#FAF7F2] rounded-lg p-3 flex justify-between items-center">
+              <span class="text-xs font-semibold text-[#9C8B7A] uppercase">Registro</span>
+              <span class="text-sm font-medium text-[#6B5744]">
                 <% if usuario.registered_at %>
-                  <%= usuario.registered_at.strftime("%d/%m/%Y %H:%M") %>
+                  <%= usuario.registered_at.strftime("%d %b, %Y") %>
                 <% else %>
                   -
                 <% end %>
-              </td>
-              <td class="px-6 py-4 text-sm text-[#9C8B7A]">---------</td>
-            </tr>
-          <% end %>
-        <% else %>
-          <tr>
-            <td colspan="4" class="px-6 py-8 text-center text-[#9C8B7A]">
-              No hay usuarios registrados públicamente
-            </td>
-          </tr>
+              </span>
+            </div>
+          </div>
         <% end %>
-      </tbody>
-    </table>
+      <% else %>
+        <div class="p-8">
+          <%= render 'shared/empty_state', 
+              title: 'Sin usuarios', 
+              description: 'Aún no hay registros.' %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

@@ -1,17 +1,17 @@
 <div class="flex min-h-[60vh] items-center justify-center">
-  <div class="w-full max-w-md p-8 rounded-xl card-hover" style="background-color: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 24px rgba(44, 24, 16, 0.06);">
-    <h1 class="text-2xl font-bold text-center mb-1" style="font-family: 'Playfair Display', serif; color: var(--text-primary);">Crear cuenta</h1>
-    <p class="text-center text-sm mb-6" style="color: var(--text-muted);">Registrate en StockControl</p>
+  <div class="w-full max-w-md p-8 rounded-xl card-hover auth-card">
+    <h1 class="text-2xl font-bold text-center mb-1">Crear cuenta</h1>
+    <p class="text-center text-sm mb-6" class="text-[#9C8B7A]">Registrate en StockControl</p>
 
     <div class="separator-diamond mb-6"><span>&#9670;</span></div>
 
     <% if alert = flash[:alert] %>
-      <div class="px-4 py-3 rounded-lg text-sm mb-4" style="background-color: #F4DCDC; border: 1px solid #E0B8B8; color: #7F3333;"><%= alert %></div>
+      <div class="px-4 py-3 rounded-lg text-sm mb-4" class="bg-[#F4DCDC] border border-[#E0B8B8] text-[#7F3333]"><%= alert %></div>
     <% end %>
 
     <%= form_with model: @user, url: registration_path, class: "space-y-5" do |form| %>
       <% if @user.errors.any? %>
-        <div class="px-4 py-3 rounded-lg text-sm" style="background-color: #F4DCDC; border: 1px solid #E0B8B8; color: #7F3333;">
+        <div class="px-4 py-3 rounded-lg text-sm" class="bg-[#F4DCDC] border border-[#E0B8B8] text-[#7F3333]">
           <h3 class="font-semibold mb-1">Se encontraron <%= pluralize(@user.errors.count, "error") %>:</h3>
           <ul class="list-disc list-inside text-sm">
             <% @user.errors.full_messages.each do |message| %>
@@ -47,7 +47,7 @@
 
       <div class="separator-diamond mt-6 mb-2"><span>&#9670;</span></div>
 
-      <div class="text-center text-sm" style="color: var(--text-muted);">
+      <div class="text-center text-sm" class="text-[#9C8B7A]">
         Ya tienes cuenta? <%= link_to "Iniciar sesion", new_session_path, class: "font-medium transition-colors", style: "color: var(--accent);", onmouseover: "this.style.color='#9A7209'", onmouseout: "this.style.color='#B8860B'" %>
       </div>
     <% end %>

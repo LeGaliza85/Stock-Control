@@ -8,7 +8,7 @@
 
   <div class="bg-white rounded-xl border border-[#E8E0D4] shadow-sm p-8">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Usuarios</h1>
+      <h1 class="text-2xl font-bold text-[#2C1810]">Gestionar usuarios</h1>
       <a href="/usuarios/new" class="inline-flex items-center gap-2 rounded-lg bg-[#B8860B] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#9A7209] transition-all duration-200">
         Nuevo usuario
       </a>
@@ -35,7 +35,7 @@
           <div class="flex items-center gap-2">
             <% if usr && usr.id != usuario.id %>
               <% if usuario.visitante? %>
-                <form action="/usuarios/switch" method="post" style="display:inline;">
+                <form action="/usuarios/switch" method="post" style="display:inline">
                   <input type="hidden" name="id" value="<%= usuario.id %>">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <button type="submit" class="inline-flex items-center gap-2 rounded-lg border border-[#B8860B] px-4 py-2 text-sm font-medium text-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-all duration-200 cursor-pointer">
@@ -43,7 +43,7 @@
                   </button>
                 </form>
               <% else %>
-                <button type="button" data-user-id="<%= usuario.id %>" data-user-name="<%= usuario.nombre %>" class="switch-user-btn inline-flex items-center gap-2 rounded-lg border border-[#B8860B] px-4 py-2 text-sm font-medium text-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-all duration-200 cursor-pointer">
+                <button type="button" data-user-id="<%= usuario.id %>" data-user-name="<%= usuario.nombre %>" data-visitante="<%= usuario.visitante? %>" data-action="click->user-switch#switch" class="switch-user-btn inline-flex items-center gap-2 rounded-lg border border-[#B8860B] px-4 py-2 text-sm font-medium text-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-all duration-200 cursor-pointer">
                   Cambiar sesión
                 </button>
               <% end %>

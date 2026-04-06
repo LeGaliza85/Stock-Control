@@ -1,5 +1,5 @@
 class UsuariosController < ApplicationController
-  before_action :require_admin, only: [ :new, :create, :edit, :update, :destroy ]
+  before_action :require_admin, only: [ :gestionar, :registrados, :new, :create, :edit, :update, :destroy ]
 
   def index
     redirect_to gestionar_usuarios_path

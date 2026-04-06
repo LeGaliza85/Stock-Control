@@ -1,0 +1,20 @@
+<nav aria-label="Breadcrumb" class="flex text-sm text-[#9C8B7A] items-center gap-2">
+  <%= link_to root_path, class: "hover:text-[#2C1810] transition-colors flex items-center gap-1" do %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+    </svg>
+  <% end %>
+
+  <% if local_assigns[:paths] %>
+    <% paths.each_with_index do |path, index| %>
+      <svg class="h-4 w-4 text-[#E8E0D4]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+      <% if index == paths.size - 1 %>
+        <span class="text-[#2C1810] font-medium max-w-xs truncate" aria-current="page"><%= path[:name] %></span>
+      <% else %>
+        <%= link_to path[:name], path[:url], class: "hover:text-[#2C1810] transition-colors" %>
+      <% end %>
+    <% end %>
+  <% end %>
+</nav>

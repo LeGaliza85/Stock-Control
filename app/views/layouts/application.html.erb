@@ -10,227 +10,248 @@
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
   <%= javascript_importmap_tags %>
-  <style>
-    .mobile-drawer {
-      transform: translateX(100%);
-      transition: transform 0.3s ease-in-out;
-    }
-    .mobile-drawer.open {
-      transform: translateX(0);
-    }
-    .mobile-overlay {
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-      pointer-events: none;
-    }
-    .mobile-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-  </style>
 </head>
-<body class="min-h-screen" style="background-color: var(--bg-cream); color: var(--text-primary); font-family: 'DM Sans', sans-serif; touch-action: manipulation;" data-controller="mobile-drawer user-switch">
+<body class="min-h-screen" data-controller="mobile-drawer user-switch">
 
   <!-- Overlay oscuro para mobile -->
-  <div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-black/50 z-40" data-mobile-drawer-target="overlay" data-action="click->mobile-drawer#toggle"></div>
+  <div id="mobileOverlay" class="mobile-overlay fixed inset-0 bg-black/40 backdrop-blur-sm z-40" data-mobile-drawer-target="overlay" data-action="click->mobile-drawer#toggle"></div>
 
-  <!-- Drawer para móvil (desde la derecha) -->
-  <div id="mobileDrawer" data-mobile-drawer-target="drawer" class="mobile-drawer fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-[#2A1E1A] border-l border-[#3D2E28] z-50 overflow-y-auto">
-    <div class="p-4 border-b border-[#3D2E28] flex justify-between items-center">
-      <span class="text-[#E8E0D4] font-semibold">Menú</span>
-      <button type="button" data-action="click->mobile-drawer#toggle" class="text-[#9C8B7A] p-2 cursor-pointer">✕</button>
+  <!-- Drawer para móvil (Light Theme) -->
+  <div id="mobileDrawer" data-mobile-drawer-target="drawer" class="mobile-drawer fixed top-0 right-0 h-full w-72 max-w-[85vw] bg-[#FAF7F2] border-l border-[#E8E0D4] z-50 overflow-y-auto">
+    <div class="p-5 border-b border-[#E8E0D4] flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
+      <span class="text-[#2C1810] font-display font-bold text-xl">Menú</span>
+      <button type="button" data-action="click->mobile-drawer#toggle" class="text-[#9C8B7A] p-2 hover:text-[#A63D2F] transition-colors cursor-pointer rounded-full hover:bg-[#F4DCDC]">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
 
     <!-- Notificaciones en mobile -->
     <% if authenticated? && !current_user.visitante? %>
-      <div class="p-4 border-b border-[#3D2E28]">
+      <div class="p-5 border-b border-[#E8E0D4] bg-white">
         <div class="flex justify-between items-center mb-3">
-          <span class="text-[#E8E0D4] font-medium text-sm">Notificaciones</span>
+          <span class="text-[#2C1810] font-semibold text-sm">Notificaciones</span>
           <% if current_user.notificaciones.no_leidas.any? %>
-            <span class="bg-[#A63D2F] text-white text-xs px-2 py-0.5 rounded-full"><%= current_user.notificaciones.no_leidas.count %></span>
+            <span class="bg-[#A63D2F] text-white text-[10px] font-bold px-2 py-0.5 rounded-full"><%= current_user.notificaciones.no_leidas.count %></span>
           <% end %>
         </div>
 
         <% if current_user.notificaciones.recientes.any? %>
-          <div class="space-y-2 max-h-48 overflow-y-auto">
+          <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
             <% current_user.notificaciones.recientes.each do |n| %>
-              <a href="<%= producto_path(n.producto) %>" class="block p-2 rounded <%= n.leida ? 'opacity-60' : 'bg-[#3D2E28]' %>">
-                <div class="text-[#E8E0D4] text-xs font-medium"><%= n.producto.nombre %></div>
-                <div class="text-[#9C8B7A] text-xs"><%= n.tipo == 'nuevo_producto' ? 'Nuevo producto' : n.tipo %></div>
+              <a href="<%= producto_path(n.producto) %>" class="block p-3 rounded-lg border <%= n.leida ? 'border-transparent bg-[#FAF7F2] opacity-70' : 'border-[#B8860B]/30 bg-[#F5ECD7]' %> hover:shadow-sm transition-all no-underline">
+                <div class="text-[#2C1810] text-sm font-medium leading-tight mb-1"><%= n.producto.nombre %></div>
+                <div class="text-[#6B5744] text-xs"><%= n.tipo == 'nuevo_producto' ? 'Nuevo producto' : n.tipo.humanize %></div>
               </a>
             <% end %>
           </div>
         <% else %>
-          <div class="text-[#9C8B7A] text-xs">Sin notificaciones</div>
+          <div class="text-[#9C8B7A] text-sm italic">Sin notificaciones</div>
         <% end %>
       </div>
     <% end %>
 
     <!-- Links principales -->
-    <div class="p-4 border-b border-[#3D2E28]">
-      <a href="<%= productos_path %>" class="block py-3 text-[#E8E0D4] text-sm">Productos</a>
-      <a href="<%= categorias_path %>" class="block py-3 text-[#E8E0D4] text-sm">Categorías</a>
+    <div class="p-3 border-b border-[#E8E0D4]">
+      <a href="<%= productos_path %>" class="flex items-center gap-3 px-4 py-3 text-[#2C1810] font-medium text-sm rounded-lg hover:bg-white transition-colors no-underline">
+        <svg class="w-5 h-5 text-[#B8860B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+        Productos
+      </a>
+      <a href="<%= categorias_path %>" class="flex items-center gap-3 px-4 py-3 text-[#2C1810] font-medium text-sm rounded-lg hover:bg-white transition-colors no-underline mt-1">
+        <svg class="w-5 h-5 text-[#B8860B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        Categorías
+      </a>
     </div>
 
     <!-- Links de admin -->
     <% if authenticated? && !current_user.visitante? %>
-      <div class="p-4 border-b border-[#3D2E28]">
-        <a href="<%= config_ia_path %>" class="block py-3 text-[#B8860B] text-sm">Configuración IA</a>
+      <div class="p-3 border-b border-[#E8E0D4]">
+        <div class="px-4 py-2 text-xs font-bold text-[#9C8B7A] uppercase tracking-wider">Administración</div>
+        <a href="<%= config_ia_path %>" class="flex items-center gap-3 px-4 py-3 text-[#2C1810] font-medium text-sm rounded-lg hover:bg-white transition-colors no-underline">
+          <svg class="w-5 h-5 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          Configuración IA
+        </a>
         <% if current_user.admin? %>
-          <a href="<%= gestionar_usuarios_path %>" class="block py-3 text-[#E8E0D4] text-sm">Gestionar usuarios</a>
-          <a href="<%= usuarios_registrados_path %>" class="block py-3 text-[#E8E0D4] text-sm">Usuarios registrados</a>
+          <a href="<%= gestionar_usuarios_path %>" class="flex items-center gap-3 px-4 py-3 text-[#2C1810] font-medium text-sm rounded-lg hover:bg-white transition-colors no-underline mt-1">
+            <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            Gestionar usuarios
+          </a>
+          <a href="<%= usuarios_registrados_path %>" class="flex items-center gap-3 px-4 py-3 text-[#2C1810] font-medium text-sm rounded-lg hover:bg-white transition-colors no-underline mt-1">
+            <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Registro de accesos
+          </a>
         <% end %>
       </div>
     <% end %>
 
-    <!-- Cambiar cuenta -->
+    <!-- Cambiar cuenta & Usuario actual -->
     <% if authenticated? %>
-      <div class="p-4 border-b border-[#3D2E28]">
-        <div class="text-[#9C8B7A] text-xs mb-2">Cambiar a:</div>
-        <% User.order(:nombre).each do |u| %>
-          <% next if u.id == current_user.id %>
-          <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-action="click->user-switch#switch" class="switch-user-btn block w-full text-left py-3 text-[#E8E0D4] text-sm cursor-pointer"><%= u.nombre %></button>
-        <% end %>
-      </div>
+      <div class="p-3">
+        <div class="px-4 py-2 text-xs font-bold text-[#9C8B7A] uppercase tracking-wider">Cuenta Actual</div>
+        <div class="px-4 py-3 mb-2 bg-white rounded-lg border border-[#E8E0D4] flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#F5ECD7] text-[#B8860B] flex items-center justify-center font-bold text-sm">
+              <%= current_user.nombre.first.upcase %>
+            </div>
+            <span class="text-[#2C1810] font-semibold text-sm"><%= current_user.nombre %></span>
+          </div>
+          <%= button_to session_path, method: :delete, class: "text-[#A63D2F] bg-transparent border-none cursor-pointer p-1 hover:bg-[#F4DCDC] rounded transition-colors", title: "Cerrar sesión" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <% end %>
+        </div>
 
-      <!-- Usuario actual y salir -->
-      <div class="p-4">
-        <div class="text-[#E8E0D4] text-sm mb-2"><%= current_user.nombre %></div>
-        <%= button_to session_path, method: :delete, class: "w-full text-left py-3 text-[#9C8B7A] text-sm cursor-pointer" do %>
-          Salir
-        <% end %>
+        <div class="px-4 py-2 mt-4 text-xs font-bold text-[#9C8B7A] uppercase tracking-wider">Cambiar sesión rápida</div>
+        <div class="space-y-1 mt-1">
+          <% User.order(:nombre).each do |u| %>
+            <% next if u.id == current_user.id %>
+            <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-visitante="<%= u.visitante? %>" data-action="click->user-switch#switch" class="switch-user-btn w-full text-left px-4 py-2.5 text-[#6B5744] text-sm font-medium rounded-lg hover:bg-white hover:text-[#2C1810] transition-colors cursor-pointer flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-[#E8E0D4] text-[#6B5744] flex items-center justify-center font-bold text-[10px]"><%= u.nombre.first.upcase %></div>
+              <%= u.nombre %>
+            </button>
+          <% end %>
+        </div>
       </div>
     <% end %>
   </div>
 
   <!-- Header principal -->
-  <header class="w-full">
-    <nav class="sticky top-0 z-50 shadow-lg w-full" style="background-color: var(--navbar-bg);">
-      <div class="w-full px-2 py-2 sm:px-4 sm:py-3 flex items-center justify-between gap-2 max-w-full">
-        <!-- Logo -->
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <%= link_to root_path do %>
-            <%= image_tag "logo.webp", alt: "StockControl", class: "w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" %>
-          <% end %>
-        </div>
+  <header class="w-full sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E8E0D4] shadow-sm">
+    <nav class="w-full px-4 py-3 mx-auto max-w-7xl flex items-center justify-between gap-4">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <%= link_to root_path, class: "flex items-center gap-3 no-underline group" do %>
+          <%= image_tag "logo.webp", alt: "StockControl", class: "w-9 h-9 sm:w-11 sm:h-11 drop-shadow-sm group-hover:scale-105 transition-transform" %>
+          <span class="font-display font-bold text-xl text-[#2C1810] hidden sm:block">StockControl</span>
+        <% end %>
+      </div>
 
-        <!-- Centro: Productos y Categorías -->
-        <div class="flex-1 flex justify-center gap-4 md:gap-6">
-          <a href="<%= productos_path %>" class="whitespace-nowrap text-[#E8E0D4] text-xs md:text-sm no-underline">Productos</a>
-          <a href="<%= categorias_path %>" class="whitespace-nowrap text-[#E8E0D4] text-xs md:text-sm no-underline">Categorías</a>
-        </div>
+      <!-- Centro: Links Principales (Desktop) -->
+      <div class="hidden md:flex flex-1 justify-center gap-8">
+        <a href="<%= productos_path %>" class="nav-link text-[#2C1810] font-semibold text-sm py-1 no-underline <%= 'text-[#B8860B]' if current_page?(productos_path) || current_page?(root_path) %>">Catálogo</a>
+        <a href="<%= categorias_path %>" class="nav-link text-[#2C1810] font-semibold text-sm py-1 no-underline <%= 'text-[#B8860B]' if current_page?(categorias_path) %>">Categorías</a>
+      </div>
 
-        <!-- Derecha: Notificaciones + Hamburguesa (mobile) + Menu/Nombre -->
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <!-- Dropdown notificaciones (desktop) -->
-          <% if authenticated? && !current_user.visitante? %>
+      <!-- Derecha: Acciones -->
+      <div class="flex items-center gap-3">
+        <% if authenticated? %>
+          <!-- Notificaciones Desktop -->
+          <% unless current_user.visitante? %>
             <div data-controller="dropdown" class="relative">
-              <button type="button" data-action="click->dropdown#toggle" class="flex items-center gap-1 bg-transparent border border-[#E8E0D4] text-[#E8E0D4] px-2 py-1 rounded-md text-xs relative cursor-pointer">
-                Notif
+              <button type="button" data-action="click->dropdown#toggle" class="relative p-2 text-[#6B5744] hover:text-[#B8860B] hover:bg-[#F5ECD7] rounded-full transition-colors cursor-pointer">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 <% if current_user.notificaciones.no_leidas.any? %>
-                  <span class="absolute -top-2 -right-2 bg-[#A63D2F] text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center"><%= current_user.notificaciones.no_leidas.count %></span>
+                  <span class="absolute top-1 right-1 flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A63D2F] opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-[#A63D2F] border-2 border-white"></span>
+                  </span>
                 <% end %>
               </button>
 
-              <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-80 max-h-96 overflow-y-auto z-50 shadow-xl">
-                <div class="p-3 border-b border-[#3D2E28] flex justify-between items-center sticky top-0 bg-[#2A1E1A] z-10">
-                  <span class="text-[#E8E0D4] font-semibold text-sm">Notificaciones</span>
+              <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-3 bg-white border border-[#E8E0D4] rounded-xl w-80 max-h-96 overflow-y-auto z-50 shadow-2xl origin-top-right transform transition-all">
+                <div class="p-3 border-b border-[#E8E0D4] flex justify-between items-center sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                  <span class="text-[#2C1810] font-bold text-sm">Notificaciones</span>
                   <div class="flex gap-2">
                     <% if current_user.notificaciones.leidas.any? %>
-                      <%= button_to eliminar_leidas_notificaciones_path, method: :delete, data: { turbo_confirm: "¿Eliminar notificaciones leídas?" }, class: "text-[#9C8B7A] text-xs bg-transparent border-none cursor-pointer" do %>
-                        Eliminar vistas
-                      <% end %>
-                    <% end %>
-                    <% if current_user.notificaciones.any? %>
-                      <%= button_to eliminar_todas_notificaciones_path, method: :delete, data: { turbo_confirm: "¿Eliminar todas las notificaciones?" }, class: "text-[#A63D2F] text-xs bg-transparent border-none cursor-pointer" do %>
-                        Eliminar todas
+                      <%= button_to eliminar_leidas_notificaciones_path, method: :delete, data: { turbo_confirm: "¿Eliminar vistas?" }, class: "text-[#9C8B7A] hover:text-[#A63D2F] text-xs bg-transparent border-none cursor-pointer transition-colors" do %>
+                        Limpiar vistas
                       <% end %>
                     <% end %>
                   </div>
                 </div>
-                <div>
+                <div class="p-2">
                   <% if current_user.notificaciones.recientes.any? %>
                     <% current_user.notificaciones.recientes.each do |n| %>
-                      <div class="p-3 border-b border-[#3D2E28] <%= n.leida ? 'opacity-60' : 'bg-[#3D2E28]' %> hover:bg-[#3D2E28] transition-colors">
-                        <div class="flex justify-between items-start">
-                          <a href="<%= producto_path(n.producto) %>" class="text-[#E8E0D4] text-sm flex-1 no-underline">
-                            <div class="font-medium"><%= n.producto.nombre %></div>
-                            <div class="text-[#9C8B7A] text-xs"><%= n.tipo == 'nuevo_producto' ? 'Nuevo producto' : n.tipo %> - <%= n.created_at.strftime("%d/%m %H:%M") %></div>
-                          </a>
-                          <% unless n.leida %>
-                            <%= button_to marcar_leida_notificacione_path(n), method: :post, class: "ml-2 text-[#9C8B7A] bg-transparent border-none cursor-pointer p-1 hover:text-white" do %>
-                              ✓
-                            <% end %>
+                      <div class="p-3 mb-1 rounded-lg <%= n.leida ? 'opacity-60 hover:bg-[#FAF7F2]' : 'bg-[#F5ECD7] border border-[#B8860B]/20' %> transition-colors flex justify-between items-start gap-2">
+                        <a href="<%= producto_path(n.producto) %>" class="text-[#2C1810] text-sm flex-1 no-underline">
+                          <div class="font-semibold leading-snug"><%= n.producto.nombre %></div>
+                          <div class="text-[#6B5744] text-xs mt-1 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full <%= n.tipo == 'nuevo_producto' ? 'bg-[#5B7F5E]' : 'bg-[#B8860B]' %>"></span>
+                            <%= n.tipo == 'nuevo_producto' ? 'Nuevo ingreso' : n.tipo.humanize %> &bull; <%= time_ago_in_words(n.created_at) %>
+                          </div>
+                        </a>
+                        <% unless n.leida %>
+                          <%= button_to marcar_leida_notificacione_path(n), method: :post, class: "text-[#B8860B] bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm border border-[#E8E0D4] cursor-pointer hover:bg-[#F5ECD7] transition-colors" do %>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                           <% end %>
-                        </div>
+                        <% end %>
                       </div>
                     <% end %>
                   <% else %>
-                    <div class="p-4 text-center text-[#9C8B7A] text-sm">Sin notificaciones</div>
+                    <div class="py-6 text-center">
+                      <svg class="w-10 h-10 mx-auto text-[#E8E0D4] mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                      <p class="text-[#9C8B7A] text-sm">Al día. Sin notificaciones.</p>
+                    </div>
                   <% end %>
                 </div>
               </div>
             </div>
           <% end %>
 
-          <!-- Botón hamburguesa (solo mobile) -->
-          <button type="button" data-action="click->mobile-drawer#toggle" class="sm:hidden p-2 text-[#E8E0D4] text-xl leading-none cursor-pointer">☰</button>
-
-          <!-- Menu Desktop -->
-          <% if authenticated? %>
-            <div data-controller="dropdown" class="relative hidden sm:block">
-              <div class="flex items-center gap-2">
-                <button type="button" data-action="click->dropdown#toggle" class="bg-transparent border border-[#E8E0D4] text-[#E8E0D4] px-3 py-1 rounded-md text-xs cursor-pointer hover:bg-white/10">Menu</button>
-                <div data-controller="dropdown" class="relative">
-                  <button type="button" data-action="click->dropdown#toggle" class="px-3 py-1 rounded-md border border-[#E8E0D4] bg-transparent text-[#B8860B] font-semibold text-xs hover:bg-[#3D2E28] cursor-pointer">
-                    <%= current_user.nombre %>
-                  </button>
-
-                  <!-- Dropdown Usuario -->
-                  <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-64 z-50 p-0 shadow-xl">
-                    <div class="px-4 py-2 border-b border-[#3D2E28]">
-                      <span class="text-[#9C8B7A] text-xs">Cambiar a:</span>
-                    </div>
-                    <% User.order(:nombre).each do |u| %>
-                      <% next if u.id == current_user.id %>
-                      <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-action="click->user-switch#switch" class="switch-user-btn w-full text-left px-4 py-2 bg-transparent border-none text-[#E8E0D4] text-sm cursor-pointer hover:bg-[#3D2E28]"><%= u.nombre %></button>
-                    <% end %>
-                    <div class="border-t border-[#3D2E28] my-2"></div>
-                    <% if !current_user.visitante? %>
-                      <a href="<%= new_usuario_path %>" class="block px-4 py-2 text-[#B8860B] text-sm no-underline hover:bg-[#3D2E28] transition-colors">+ Nuevo usuario</a>
-                      <% if current_user.admin? %>
-                        <a href="<%= gestionar_usuarios_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Gestionar usuarios</a>
-                      <% end %>
-                    <% end %>
-                    <div class="border-t border-[#3D2E28] my-2"></div>
-                    <%= button_to session_path, method: :delete, class: "w-full text-left px-4 py-2 bg-transparent border-none text-[#9C8B7A] text-sm cursor-pointer hover:bg-[#3D2E28] transition-colors" do %>
-                      Salir
-                    <% end %>
-                  </div>
-                </div>
+          <!-- Menú Usuario (Desktop) -->
+          <div data-controller="dropdown" class="relative hidden md:block">
+            <button type="button" data-action="click->dropdown#toggle" class="flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-full border border-[#E8E0D4] bg-white hover:bg-[#FAF7F2] hover:border-[#B8860B] transition-all cursor-pointer shadow-sm">
+              <span class="text-[#2C1810] font-semibold text-sm"><%= current_user.nombre %></span>
+              <div class="w-6 h-6 rounded-full bg-[#B8860B] text-white flex items-center justify-center font-bold text-xs shadow-inner">
+                <%= current_user.nombre.first.upcase %>
               </div>
+            </button>
 
-              <!-- Dropdown Menu Principal -->
-              <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-2 bg-[#2A1E1A] border border-[#3D2E28] rounded-md w-48 z-50 shadow-xl">
-                <a href="<%= productos_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Productos</a>
-                <a href="<%= categorias_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Categorías</a>
-                <% if !current_user.visitante? %>
-                  <a href="<%= config_ia_path %>" class="block px-4 py-2 text-[#B8860B] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Configuración IA</a>
+            <!-- Dropdown Menú -->
+            <div data-dropdown-target="menu" class="hidden absolute right-0 top-full mt-3 bg-white border border-[#E8E0D4] rounded-xl w-60 z-50 p-2 shadow-2xl origin-top-right">
+              <% if !current_user.visitante? %>
+                <div class="px-3 py-2">
+                  <p class="text-xs font-bold text-[#9C8B7A] uppercase tracking-wider mb-2">Administración</p>
+                  <a href="<%= config_ia_path %>" class="flex items-center gap-2 px-3 py-2 text-[#2C1810] text-sm rounded-lg hover:bg-[#FAF7F2] transition-colors no-underline">
+                    <svg class="w-4 h-4 text-[#7C3AED]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Configuración IA
+                  </a>
                   <% if current_user.admin? %>
-                    <a href="<%= usuarios_registrados_path %>" class="block px-4 py-2 text-[#E8E0D4] text-sm no-underline hover:bg-[#3D2E28] transition-colors">Usuarios registrados</a>
+                    <a href="<%= gestionar_usuarios_path %>" class="flex items-center gap-2 px-3 py-2 text-[#2C1810] text-sm rounded-lg hover:bg-[#FAF7F2] transition-colors no-underline">
+                      <svg class="w-4 h-4 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                      Gestionar usuarios
+                    </a>
                   <% end %>
+                </div>
+                <div class="h-px bg-[#E8E0D4] my-1 mx-2"></div>
+              <% end %>
+              
+              <div class="px-3 py-2">
+                <p class="text-xs font-bold text-[#9C8B7A] uppercase tracking-wider mb-2">Cambiar cuenta</p>
+                <% User.order(:nombre).each do |u| %>
+                  <% next if u.id == current_user.id %>
+                  <button type="button" data-user-id="<%= u.id %>" data-user-name="<%= u.nombre %>" data-visitante="<%= u.visitante? %>" data-action="click->user-switch#switch" class="switch-user-btn w-full text-left px-3 py-2 text-[#6B5744] text-sm rounded-lg hover:bg-[#FAF7F2] hover:text-[#2C1810] transition-colors cursor-pointer flex items-center gap-2">
+                    <div class="w-5 h-5 rounded-full bg-[#E8E0D4] text-[#6B5744] flex items-center justify-center font-bold text-[9px]"><%= u.nombre.first.upcase %></div>
+                    <%= u.nombre %>
+                  </button>
+                <% end %>
+              </div>
+              <div class="h-px bg-[#E8E0D4] my-1 mx-2"></div>
+              <div class="p-1">
+                <%= button_to session_path, method: :delete, class: "w-full text-left px-4 py-2 bg-transparent border-none text-[#A63D2F] font-medium text-sm rounded-lg hover:bg-[#F4DCDC] transition-colors cursor-pointer flex items-center gap-2" do %>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                  Cerrar sesión
                 <% end %>
               </div>
             </div>
-          <% else %>
-            <a href="<%= new_session_path %>" class="text-[#E8E0D4] text-sm no-underline">Iniciar sesión</a>
-          <% end %>
-        </div>
+          </div>
+        <% else %>
+          <a href="<%= new_session_path %>" class="btn-primary text-sm no-underline hidden md:inline-block">Iniciar sesión</a>
+        <% end %>
+
+        <!-- Botón hamburguesa (Mobile) -->
+        <button type="button" data-action="click->mobile-drawer#toggle" class="md:hidden p-2 text-[#2C1810] cursor-pointer hover:bg-[#FAF7F2] rounded-lg transition-colors border border-[#E8E0D4] bg-white">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
       </div>
     </nav>
   </header>
 
   <main class="container mx-auto px-4 py-8">
+    <%= render 'shared/flash' %>
+    <% if content_for?(:breadcrumbs) %>
+      <div class="mb-6">
+        <%= yield :breadcrumbs %>
+      </div>
+    <% end %>
     <%= yield %>
   </main>
 </body>

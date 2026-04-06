@@ -1,16 +1,16 @@
 <div class="flex min-h-[60vh] items-center justify-center">
-  <div class="w-full max-w-md p-8 rounded-xl card-hover" style="background-color: var(--bg-card); border: 1px solid var(--border); box-shadow: 0 4px 24px rgba(44, 24, 16, 0.06);">
-    <h1 class="text-2xl font-bold text-center mb-1" style="font-family: 'Playfair Display', serif; color: var(--text-primary);">StockControl</h1>
-    <p class="text-center text-sm mb-6" style="color: var(--text-muted);">Accede a tu inventario</p>
+  <div class="w-full max-w-md p-8 rounded-xl auth-card card-hover">
+    <h1 class="text-2xl font-bold text-center mb-1">StockControl</h1>
+    <p class="text-center text-sm mb-6 text-muted">Accede a tu inventario</p>
 
     <div class="separator-diamond mb-6"><span>&#9670;</span></div>
 
     <% if alert = flash[:alert] %>
-      <div class="px-4 py-3 rounded-lg text-sm mb-4" style="background-color: #F4DCDC; border: 1px solid #E0B8B8; color: #7F3333;"><%= alert %></div>
+      <div class="px-4 py-3 rounded-lg text-sm mb-4" class="bg-[#F4DCDC] border border-[#E0B8B8] text-[#7F3333]"><%= alert %></div>
     <% end %>
 
     <% if notice = flash[:notice] %>
-      <div class="px-4 py-3 rounded-lg text-sm mb-4" style="background-color: #E8F0E8; border: 1px solid #C4D9C4; color: #3D5E3D;"><%= notice %></div>
+      <div class="px-4 py-3 rounded-lg text-sm mb-4" class="bg-[#E8F0E8] border border-[#C4D9C4] text-[#3D5E3D]"><%= notice %></div>
     <% end %>
 
     <%= form_with url: session_url, class: "space-y-5" do |form| %>
@@ -22,8 +22,8 @@
       <div>
         <%= form.label :password, "Contrasena", class: "block text-sm font-medium mb-1", style: "color: var(--text-secondary);" %>
         <div class="relative">
-          <input type="password" name="password" id="pass" required autocomplete="current-password" placeholder="Tu contrasena" maxlength="72" class="w-full rounded-lg border border-gray-300 pr-10 px-3 py-2" style="padding-right:2.5rem">
-          <button type="button" id="passBtn" onclick="togglePassword()" style="position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);cursor:pointer;background:none;border:none;color:#9C8B7A">
+          <input type="password" name="password" id="pass" required autocomplete="current-password" placeholder="Tu contrasena" maxlength="72" class="w-full rounded-lg border border-gray-300 pr-10 px-3 py-2">
+          <button type="button" id="passBtn" onclick="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer bg-transparent border-none text-[#9C8B7A]">
             <svg id="passEye" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
           </button>
         </div>
@@ -49,7 +49,7 @@ function togglePassword() {
 
       <div class="separator-diamond mt-6 mb-2"><span>&#9670;</span></div>
 
-      <div class="text-center text-sm space-x-2" style="color: var(--text-muted);">
+      <div class="text-center text-sm space-x-2" class="text-[#9C8B7A]">
         <%= link_to "Olvidaste tu contrasena?", new_password_path, class: "font-medium transition-colors", style: "color: var(--accent);", onmouseover: "this.style.color='#9A7209'", onmouseout: "this.style.color='#B8860B'" %>
         <span>&middot;</span>
         <%= link_to "Crear cuenta", new_registration_path, class: "font-medium transition-colors", style: "color: var(--accent);", onmouseover: "this.style.color='#9A7209'", onmouseout: "this.style.color='#B8860B'" %>

@@ -1,11 +1,11 @@
 <%# locals: (show_fill_form: false) %>
 <div data-product-search-target="iaModal" data-action="click->product-search#closeOnBackdrop"
-  class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
+  class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1C1814]/85">
   <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
     <div class="p-6">
       <%# Header %>
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Análisis de Imagen</h3>
+        <h3 class="text-xl font-bold text-[#2C1810]">Análisis de Imagen</h3>
         <button type="button" data-action="click->product-search#closeIaModal"
           class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
           <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,7 +15,7 @@
       </div>
       <%# Image preview %>
       <div data-product-search-target="iaImagePreview"
-           class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center" style="min-height: 150px;">
+           class="mb-4 rounded-lg overflow-hidden bg-[#FAF7F2] flex items-center justify-center min-h-[150px]">
         <p class="text-[#9C8B7A] text-sm">Cargando imagen...</p>
       </div>
       <%# Loading %>

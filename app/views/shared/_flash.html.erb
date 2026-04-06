@@ -1,0 +1,14 @@
+<div id="flash" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-full max-w-sm px-4">
+  <% flash.each do |flash_type, message| %>
+    <% bg_color = flash_type.to_s == 'notice' ? 'bg-[#9C8B7A]' : 'bg-[#A63D2F]' %>
+    <% text_color = 'text-[#2A1E1A]' %>
+    <% if flash_type.to_s == 'alert' || flash_type.to_s == 'error' %>
+      <% text_color = 'text-[#E8E0D4]' %>
+    <% end %>
+    
+    <div data-controller="toast" class="<%= bg_color %> <%= text_color %> px-4 py-3 rounded shadow-lg border border-[#3D2E28] flex justify-between items-start" role="alert">
+      <span class="text-sm font-medium"><%= message %></span>
+      <button type="button" data-action="toast#dismiss" class="ml-4 hover:opacity-75 focus:outline-none leading-none">&times;</button>
+    </div>
+  <% end %>
+</div>

@@ -2,7 +2,7 @@
   <%= turbo_stream_from "productos" %>
   <div class="w-full">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-      <h1 class="text-3xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Inventario</h1>
+      <h1 class="text-3xl font-bold text-[#2C1810]">Inventario</h1>
       <% unless current_user.visitante? %>
         <div class="flex flex-col w-full gap-3 sm:flex-row">
           <button type="button" data-action="click->product-search#openSearchModal"
@@ -167,10 +167,12 @@
         </div>
       <% end %>
     <% else %>
-      <div class="text-center py-16">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-[#E8E0D4] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-        <p class="text-[#9C8B7A] text-lg" style="font-family: 'Playfair Display', serif;">No se encontraron piezas en el inventario.</p>
-        <p class="text-[#9C8B7A] text-sm mt-1">Intenta ajustar los filtros o agrega un nuevo producto.</p>
+      <div class="py-8">
+        <%= render 'shared/empty_state', 
+              title: 'No se encontraron piezas en el inventario.', 
+              description: 'Intenta ajustar los filtros o agrega un nuevo producto.', 
+              action_text: current_user.visitante? ? nil : 'Nuevo Producto', 
+              action_url: current_user.visitante? ? nil : new_producto_path %>
       </div>
     <% end %>
   <% end %>
@@ -183,7 +185,7 @@
     <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-bold text-[#2C1810]" style="font-family: 'Playfair Display', serif;">Buscar en el inventario</h3>
+          <h3 class="text-xl font-bold text-[#2C1810]">Buscar en el inventario</h3>
           <button type="button" data-action="click->product-search#closeSearchModal"
             class="w-8 h-8 rounded-full bg-[#F5ECD7] flex items-center justify-center cursor-pointer hover:bg-[#E8DCC8] transition-colors">
             <svg class="w-5 h-5 text-[#6B5744]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

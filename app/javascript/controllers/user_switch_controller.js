@@ -5,9 +5,13 @@ export default class extends Controller {
     const btn = e.currentTarget
     const userId = btn.dataset.userId
     const userName = btn.dataset.userName
+    const isVisitante = btn.dataset.visitante === "true"
     
-    const password = prompt("Ingresa la contraseña de " + userName + ":")
-    if (password === null || password === "") return
+    let password = ""
+    if (!isVisitante) {
+      password = prompt("Ingresa la contraseña de " + userName + ":")
+      if (password === null || password === "") return
+    }
     
     const originalText = btn.textContent
     btn.disabled = true

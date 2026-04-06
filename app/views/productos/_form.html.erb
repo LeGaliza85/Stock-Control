@@ -25,7 +25,7 @@
 
     <!-- Información básica -->
     <div class="mb-8">
-      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Información básica</h2>
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4">Información básica</h2>
       <div class="space-y-5">
         <div>
           <%= f.label :nombre, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
@@ -42,7 +42,7 @@
 
     <!-- Precios -->
     <div class="mb-8">
-      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Precios</h2>
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4">Precios</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <%= f.label :precio_compra, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
@@ -59,7 +59,7 @@
 
     <!-- Detalles -->
     <div class="mb-8">
-      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Detalles</h2>
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4">Detalles</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <%= f.label :estado, class: "block text-sm font-medium text-[#6B5744] mb-1.5" %>
@@ -83,10 +83,10 @@
 
     <!-- Fotografías -->
     <div class="mb-8" data-controller="photo-preview">
-      <h2 class="text-lg font-semibold text-[#2C1810] mb-4" style="font-family: 'Playfair Display', serif;">Fotografías</h2>
+      <h2 class="text-lg font-semibold text-[#2C1810] mb-4">Fotografías</h2>
       <div class="flex flex-wrap gap-3 mb-3">
         <button type="button" data-action="click->photo-preview#openCamera"
-          class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200" style="background-color: #B8860B;">
+          class="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white cursor-pointer transition-all duration-200 bg-[#B8860B]">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -148,7 +148,7 @@
   <% end %>
 
   <!-- Modal nueva categoría -->
-  <div data-quick-category-target="modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(28, 24, 20, 0.85);">
+  <div data-quick-category-target="modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1C1814]/85">
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold text-[#2C1810]">Nueva Categoría</h3>
